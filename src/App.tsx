@@ -39,6 +39,7 @@ const BrowseMarketplacePage = lazy(() => import("./pages/BrowseMarketplacePage")
 const SellProductsPage = lazy(() => import("./pages/SellProductsPage"));
 const MyListingsPage = lazy(() => import("./pages/MyListingsPage"));
 const CreateListingPage = lazy(() => import("./pages/CreateListingPage"));
+const ScheduleConsultationPage = lazy(() => import("./pages/ScheduleConsultationPage"));
 
 // Community - Lazy loaded
 const MyActivityPage = lazy(() => import("./pages/MyActivityPage"));
@@ -49,6 +50,11 @@ const HostEventPage = lazy(() => import("./pages/community/HostEventPage"));
 const InboxPage = lazy(() => import("./pages/community/InboxPage"));
 const ShareInsightPage = lazy(() => import("./pages/community/ShareInsightPage"));
 const StartTopicPage = lazy(() => import("./pages/community/StartTopicPage"));
+
+// Career & Professional - Lazy loaded
+const CareerCertificationPage = lazy(() => import("./pages/CareerCertificationPage"));
+const JobPlacementPage = lazy(() => import("./pages/JobPlacementPage"));
+const StrategySessionsPage = lazy(() => import("./pages/StrategySessionsPage"));
 
 // Misc / Support - Lazy loaded
 const AnalyticsPage = lazy(() => import("./pages/AnalyticsPage"));
@@ -122,6 +128,9 @@ const routeGroups: AppRoute[] = [
   { path: "/marketplace", component: MarketplacePage, protected: true },
   { path: "/marketplace/browse", component: BrowseMarketplacePage, protected: true },
   { path: "/marketplace/sell-products", component: SellProductsPage, protected: true },
+  { path: "/marketplace/schedule-consultation", component: ScheduleConsultationPage, protected: true },
+  { path: "/marketplace/my-listings", component: MyListingsPage, protected: true },
+  { path: "/marketplace/create", component: CreateListingPage, protected: true },
 
   // Community
   { path: "/community", component: CommunityPage, protected: true },
@@ -134,13 +143,16 @@ const routeGroups: AppRoute[] = [
   { path: "/community/share-insight", component: ShareInsightPage, protected: true },
   { path: "/community/start-topic", component: StartTopicPage, protected: true },
 
+  // Career & Professional
+  { path: "/career-certification", component: CareerCertificationPage, protected: true },
+  { path: "/job-placement", component: JobPlacementPage, protected: true },
+  { path: "/strategy-sessions", component: StrategySessionsPage, protected: true },
+
   // Misc
   { path: "/analytics", component: AnalyticsPage, protected: true },
   { path: "/support", component: SupportPage, protected: true },
   { path: "/subscription", component: SubscriptionPage, protected: true },
   { path: "/referrals", component: ReferralPage, protected: true },
-  { path: "/marketplace/my-listings", component: MyListingsPage, protected: true },
-  { path: "/marketplace/create", component: CreateListingPage, protected: true },
 ];
 
 const App = () => {

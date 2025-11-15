@@ -7,11 +7,15 @@ const routeImports: Record<string, () => Promise<any>> = {
   '/learning-paths': () => import('@/pages/LearningPaths'),
   '/ai-tools': () => import('@/pages/AIToolsPage'),
   '/marketplace': () => import('@/pages/MarketplacePage'),
+  '/marketplace/schedule-consultation': () => import('@/pages/ScheduleConsultationPage'),
   '/community': () => import('@/pages/CommunityPage'),
   '/referrals': () => import('@/pages/ReferralPage'),
   '/subscription': () => import('@/pages/SubscriptionPage'),
   '/analytics': () => import('@/pages/AnalyticsPage'),
   '/support': () => import('@/pages/SupportPage'),
+  '/career-certification': () => import('@/pages/CareerCertificationPage'),
+  '/job-placement': () => import('@/pages/JobPlacementPage'),
+  '/strategy-sessions': () => import('@/pages/StrategySessionsPage'),
 };
 
 // Cache to track which routes have been prefetched
