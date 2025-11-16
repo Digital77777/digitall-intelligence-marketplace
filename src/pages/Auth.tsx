@@ -9,15 +9,9 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Brain, BookOpen, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
-
-const authSchema = z.object({
-  email: z.string().trim().email('Please enter a valid email address').max(255, 'Email is too long'),
-  password: z.string()
-    .min(8, 'Password must be at least 8 characters')
-    .max(72, 'Password is too long')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number')
-});
+import { authSchema } from '@/lib/validationSchemas';
+import { handleAuthError } from '@/lib/errorHandler';
+import { SEOHead } from '@/components/SEOHead';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -47,7 +41,7 @@ const Auth = () => {
       const { error } = await signUp(validated.email, validated.password);
       
       if (error) {
-        setError('Unable to create account. Please try again.');
+        setError(handleAuthError(error));
       } else {
         setSuccess('Check your email for confirmation link!');
       }
@@ -72,7 +66,7 @@ const Auth = () => {
       const { error } = await signIn(validated.email, validated.password);
       
       if (error) {
-        setError('Invalid email or password');
+        setError(handleAuthError(error));
       }
     } catch (err) {
       if (err instanceof z.ZodError) {
@@ -86,6 +80,11 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center p-4">
+      <SEOHead 
+        title="Sign In - Learn, Build & Earn with AI"
+        description="Join thousands of students learning and earning with AI. Sign in to access AI tools, courses, and opportunities."
+        keywords={["AI education", "login", "sign in", "AI learning platform", "AI courses"]}
+      />
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">

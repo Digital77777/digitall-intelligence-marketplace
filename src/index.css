@@ -46,6 +46,12 @@ All colors MUST be HSL.
     --success: 140 85% 30%;
     --success-foreground: 0 0% 100%;
 
+    --warning: 40 95% 55%;
+    --warning-foreground: 40 15% 15%;
+
+    --info: 200 95% 55%;
+    --info-foreground: 0 0% 100%;
+
     /* Borders and inputs */
     --border: 240 20% 90%;
     --input: 240 20% 95%;
@@ -55,30 +61,28 @@ All colors MUST be HSL.
     --gradient-ai: linear-gradient(135deg, hsl(240 100% 65%), hsl(250 100% 75%));
     --gradient-learning: linear-gradient(135deg, hsl(200 100% 70%), hsl(240 100% 65%));
     --gradient-earn: linear-gradient(135deg, hsl(280 100% 70%), hsl(320 100% 75%));
+    --gradient-hero: linear-gradient(135deg, hsl(240 100% 65% / 0.1), hsl(250 100% 75% / 0.1));
 
     /* Shadows */
     --shadow-soft: 0 2px 20px -2px hsl(240 50% 50% / 0.1);
     --shadow-ai: 0 8px 40px -8px hsl(240 100% 65% / 0.3);
+    --shadow-card: 0 4px 24px -4px hsl(240 30% 50% / 0.12);
+    --shadow-elevation: 0 10px 40px -10px hsl(240 40% 50% / 0.15);
 
     /* Animation timing */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 
     --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
@@ -107,9 +111,19 @@ All colors MUST be HSL.
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
+    --success: 140 85% 35%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 40 95% 60%;
+    --warning-foreground: 40 15% 10%;
+
+    --info: 200 95% 60%;
+    --info-foreground: 0 0% 100%;
+
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
+    
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -145,6 +159,54 @@ All colors MUST be HSL.
   /* Prevent layout shifts in main wrappers */
   .min-h-screen {
     contain: layout;
+  }
+
+  /* Focus visible styles for accessibility */
+  *:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Selection colors */
+  ::selection {
+    background-color: hsl(var(--primary) / 0.3);
+    color: hsl(var(--foreground));
+  }
+}
+
+@layer utilities {
+  /* Text gradient utilities */
+  .text-gradient-ai {
+    @apply bg-gradient-ai bg-clip-text text-transparent;
+  }
+
+  .text-gradient-learning {
+    @apply bg-gradient-learning bg-clip-text text-transparent;
+  }
+
+  .text-gradient-earn {
+    @apply bg-gradient-earn bg-clip-text text-transparent;
+  }
+
+  /* Animation utilities */
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }
 

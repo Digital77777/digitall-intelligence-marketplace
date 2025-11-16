@@ -21,6 +21,7 @@ import { useCommunity } from "@/hooks/useCommunity";
 import { formatDistanceToNow } from "date-fns";
 import { EnhancedImage } from "@/components/media/EnhancedImage";
 import type { CommunityInsight } from "@/types/community";
+import { SEOHead } from "@/components/SEOHead";
 
 const CommunityPage = () => {
   const navigate = useNavigate();
@@ -177,6 +178,11 @@ const CommunityPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead 
+        title="AI Community - Connect, Learn & Collaborate"
+        description="Join our AI community to connect with enthusiasts, share insights, participate in live events, and grow together in the world of artificial intelligence."
+        keywords={["AI community", "AI networking", "AI events", "AI discussions", "AI learning", "AI collaboration", "tech community"]}
+      />
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-primary/10 via-secondary/5 to-accent/10 py-16">
         <div className="container mx-auto px-6">

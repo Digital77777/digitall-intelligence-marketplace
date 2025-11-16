@@ -7,6 +7,7 @@ import { AlertCircle, ArrowLeft } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { SEOHead } from '@/components/SEOHead';
 
 const SubscriptionPage = () => {
   const navigate = useNavigate();
@@ -35,6 +36,11 @@ const SubscriptionPage = () => {
 
   return (
     <div className="min-h-screen bg-background py-12">
+      <SEOHead 
+        title="Subscription Plans - Choose Your AI Learning Path"
+        description="Select the perfect plan for your AI journey. Starter, Creator, and Career tiers with different access levels. Upgrade or downgrade anytime."
+        keywords={["AI subscription", "learning plans", "AI course pricing", "subscription tiers", "AI education"]}
+      />
       <div className="container mx-auto px-6">
         <div className="max-w-6xl mx-auto space-y-8">
           {/* Header */}

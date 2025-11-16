@@ -3,6 +3,7 @@ import { StarterDashboard } from '@/components/tier/StarterDashboard';
 import { CreatorDashboard } from '@/components/tier/CreatorDashboard';
 import { CareerDashboard } from '@/components/tier/CareerDashboard';
 import { Skeleton } from '@/components/ui/skeleton';
+import { SEOHead } from '@/components/SEOHead';
 
 const DashboardPage = () => {
   const { tierName, loading } = useTier();
@@ -26,6 +27,11 @@ const DashboardPage = () => {
 
   return (
     <div className="min-h-screen bg-background py-12 animate-fade-in">
+      <SEOHead 
+        title="Dashboard - Your AI Learning Journey"
+        description="Track your progress, access AI tools, and manage your learning journey. View your subscription benefits and personalized recommendations."
+        keywords={["AI dashboard", "learning progress", "AI tools access", "student dashboard"]}
+      />
       <div className="container mx-auto px-6">
         {tierName === 'starter' && <StarterDashboard />}
         {tierName === 'creator' && <CreatorDashboard />}
