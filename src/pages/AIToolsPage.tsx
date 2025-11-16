@@ -11,6 +11,7 @@ import { ToolAccessBanner } from "@/components/tier/ToolAccessBanner";
 import { useTier } from "@/contexts/TierContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { SEOHead } from "@/components/SEOHead";
 
 const AIToolsPage = () => {
   const navigate = useNavigate();
@@ -164,7 +165,11 @@ const AIToolsPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      
+      <SEOHead 
+        title="AI Tools - Build Anything with AI"
+        description="Access powerful AI development tools including Lovable.dev, Replit, and Cursor. Build websites, apps, and AI-powered projects with ease."
+        keywords={["AI tools", "AI development", "Lovable.dev", "Replit", "Cursor", "code editor", "web development", "AI coding"]}
+      />
       
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/5 pt-20 pb-16">

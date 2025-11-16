@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { TierGate } from "@/components/tier/TierGate";
 import { useTier } from "@/contexts/TierContext";
+import { SEOHead } from "@/components/SEOHead";
 
 const MarketplacePage = () => {
   const navigate = useNavigate();
@@ -93,7 +94,11 @@ const MarketplacePage = () => {
   return (
     <TierGate feature="marketplace_buy">
       <div className="min-h-screen bg-background">
-        
+        <SEOHead 
+          title="AI Marketplace - Buy & Sell AI Products and Services"
+          description="Discover and monetize AI tools, templates, courses, and services. Connect with AI professionals, find freelance opportunities, and post job listings."
+          keywords={["AI marketplace", "AI products", "AI services", "freelance AI", "AI jobs", "sell AI tools", "AI consulting"]}
+        />
         
         {/* Hero Section */}
         <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/5 pt-20 pb-16">

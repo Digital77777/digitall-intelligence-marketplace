@@ -41,6 +41,14 @@ export default {
 					DEFAULT: 'hsl(var(--success))',
 					foreground: 'hsl(var(--success-foreground))'
 				},
+				warning: {
+					DEFAULT: 'hsl(var(--warning))',
+					foreground: 'hsl(var(--warning-foreground))'
+				},
+				info: {
+					DEFAULT: 'hsl(var(--info))',
+					foreground: 'hsl(var(--info-foreground))'
+				},
 				muted: {
 					DEFAULT: 'hsl(var(--muted))',
 					foreground: 'hsl(var(--muted-foreground))'
@@ -72,10 +80,21 @@ export default {
 				'gradient-ai': 'var(--gradient-ai)',
 				'gradient-learning': 'var(--gradient-learning)',
 				'gradient-earn': 'var(--gradient-earn)',
+				'gradient-hero': 'var(--gradient-hero)',
 			},
 			boxShadow: {
 				'soft': 'var(--shadow-soft)',
 				'ai': 'var(--shadow-ai)',
+				'card': 'var(--shadow-card)',
+				'elevation': 'var(--shadow-elevation)',
+			},
+			transitionTimingFunction: {
+				'smooth': 'cubic-bezier(0.4, 0, 0.2, 1)',
+			},
+			transitionDuration: {
+				'smooth': '300ms',
+				'fast': '150ms',
+				'slow': '500ms',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -106,12 +125,23 @@ export default {
 					'100%': {
 						transform: 'translateX(100%)'
 					}
+				},
+				'fade-in': {
+					'0%': {
+						opacity: '0',
+						transform: 'translateY(10px)'
+					},
+					'100%': {
+						opacity: '1',
+						transform: 'translateY(0)'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
-				'shimmer': 'shimmer 2s infinite'
+				'shimmer': 'shimmer 2s infinite',
+				'fade-in': 'fade-in 0.5s ease-out'
 			}
 		}
 	},

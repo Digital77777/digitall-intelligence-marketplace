@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { useTier } from "@/contexts/TierContext";
+import { SEOHead } from "@/components/SEOHead";
 
 const LearningPaths = () => {
   const navigate = useNavigate();
@@ -164,7 +165,11 @@ const LearningPaths = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      
+      <SEOHead 
+        title="Learning Paths - Structured AI Courses & Journeys"
+        description="Comprehensive AI learning paths from beginner to professional. Choose from Foundation, Technical Developer, Business Careers, and Practical Skills tracks."
+        keywords={["AI courses", "AI learning path", "AI training", "AI certification", "AI education programs", "machine learning courses"]}
+      />
       
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/5 pt-16 sm:pt-20 pb-12 sm:pb-16">
