@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { z } from "zod";
+import { consultationSchema } from "@/lib/validationSchemas";
 
 interface ConsultationData {
   name: string;
@@ -70,28 +72,23 @@ const ScheduleConsultationPage = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Basic validation
-    if (!formData.name || !formData.email || !formData.preferredDate || !formData.preferredTime) {
-      toast.error("Please fill in all required fields");
-      return;
+    try {
+      // Validate with Zod schema
+      const validated = consultationSchema.parse(formData);
+      
+      toast.success("Consultation scheduled successfully! You'll receive a confirmation email with meeting details.");
+      
+      // Navigate back
+      setTimeout(() => {
+        navigate("/ai-tools");
+      }, 2000);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        toast.error(err.errors[0].message);
+      } else {
+        toast.error("An unexpected error occurred");
+      }
     }
-
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      toast.error("Please enter a valid email address");
-      return;
-    }
-
-    // Simulate booking consultation
-    console.log("Consultation booking data:", formData);
-    
-    toast.success("Consultation scheduled successfully! You'll receive a confirmation email with meeting details.");
-    
-    // Navigate back
-    setTimeout(() => {
-      navigate("/marketplace/ai-development");
-    }, 2000);
   };
 
   const benefits = [
@@ -112,10 +109,10 @@ const ScheduleConsultationPage = () => {
           <Button 
             variant="ghost" 
             className="mb-6 group"
-            onClick={() => navigate("/marketplace/ai-development")}
+            onClick={() => navigate("/ai-tools")}
           >
             <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-            Back to AI Development
+            Back to AI Tools
           </Button>
 
           <div className="max-w-4xl mx-auto">

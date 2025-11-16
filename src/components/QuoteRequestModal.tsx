@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { z } from "zod";
+import { quoteRequestSchema } from "@/lib/validationSchemas";
 
 interface QuoteRequestModalProps {
   isOpen: boolean;
@@ -65,40 +67,32 @@ export const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Basic validation
-    if (!formData.name || !formData.email || !formData.projectDescription) {
-      toast.error("Please fill in all required fields");
-      return;
+    try {
+      // Validate with Zod schema
+      const validated = quoteRequestSchema.parse(formData);
+      
+      toast.success("Quote request submitted successfully! Our team will contact you within 24 hours with a detailed proposal.");
+      
+      // Reset form and close modal
+      setFormData({
+        name: "",
+        email: "",
+        company: "",
+        phone: "",
+        projectDescription: "",
+        timeline: "",
+        budget: "",
+        requirements: ""
+      });
+      
+      onClose();
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        toast.error(err.errors[0].message);
+      } else {
+        toast.error("An unexpected error occurred");
+      }
     }
-
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      toast.error("Please enter a valid email address");
-      return;
-    }
-
-    // Simulate quote request submission
-    console.log("Quote request data:", {
-      service: serviceTitle,
-      ...formData
-    });
-    
-    toast.success("Quote request submitted successfully! Our team will contact you within 24 hours with a detailed proposal.");
-    
-    // Reset form and close modal
-    setFormData({
-      name: "",
-      email: "",
-      company: "",
-      phone: "",
-      projectDescription: "",
-      timeline: "",
-      budget: "",
-      requirements: ""
-    });
-    
-    onClose();
   };
 
   if (!isOpen) return null;
