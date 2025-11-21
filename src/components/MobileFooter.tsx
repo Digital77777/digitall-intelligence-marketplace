@@ -42,7 +42,7 @@ const MobileFooter = () => {
   };
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border shadow-sm">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border shadow-sm" aria-label="Mobile navigation" role="navigation">
       <div className="flex items-center justify-around h-16 px-2">
         {navigationItems.map((item) => {
           const isActive = location.pathname === item.path;
@@ -52,6 +52,8 @@ const MobileFooter = () => {
               to={item.path}
               onClick={handleNavClick}
               onTouchStart={() => handleTouchStart(item.path)}
+              aria-label={`Navigate to ${item.label}`}
+              aria-current={isActive ? "page" : undefined}
               className={cn(
                 "flex flex-col items-center justify-center gap-1 py-2 px-3 rounded-xl transition-all min-w-0 flex-1 active:scale-95",
                 isActive 
@@ -59,7 +61,7 @@ const MobileFooter = () => {
                   : "text-muted-foreground active:text-foreground"
               )}
             >
-              <item.icon className={cn("h-6 w-6", isActive && "text-primary")} />
+              <item.icon className={cn("h-6 w-6", isActive && "text-primary")} aria-hidden="true" />
               <span className={cn(
                 "text-[10px] font-medium truncate",
                 isActive && "text-primary"
