@@ -39,7 +39,7 @@ export const ListingDetailsModal: React.FC<ListingDetailsModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-describedby="listing-description">
         <DialogHeader>
           <div className="flex justify-between items-start">
             <DialogTitle className="text-2xl font-bold">{listing.title}</DialogTitle>
@@ -49,8 +49,9 @@ export const ListingDetailsModal: React.FC<ListingDetailsModalProps> = ({
                 size="sm"
                 onClick={() => onFavorite(listing.id)}
                 className="h-8 w-8 p-0"
+                aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
               >
-                <Heart className={`h-5 w-5 ${isFavorited ? 'fill-red-500 text-red-500' : ''}`} />
+                <Heart className={`h-5 w-5 ${isFavorited ? 'fill-red-500 text-red-500' : ''}`} aria-hidden="true" />
               </Button>
             )}
           </div>
@@ -79,7 +80,7 @@ export const ListingDetailsModal: React.FC<ListingDetailsModalProps> = ({
             {/* Description */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Description</h3>
-              <p className="text-muted-foreground leading-relaxed">{listing.description}</p>
+              <p id="listing-description" className="text-muted-foreground leading-relaxed">{listing.description}</p>
             </div>
 
             {/* Requirements */}
@@ -134,13 +135,14 @@ export const ListingDetailsModal: React.FC<ListingDetailsModalProps> = ({
                       onClick={handleUseCreation}
                       className="w-full"
                       size="lg"
+                      aria-label="Open creation link in new window"
                     >
-                      <ExternalLink className="mr-2 h-4 w-4" />
+                      <ExternalLink className="mr-2 h-4 w-4" aria-hidden="true" />
                       Use This Creation
                     </Button>
                   )}
                   
-                  <Button variant="outline" className="w-full" size="lg">
+                  <Button variant="outline" className="w-full" size="lg" aria-label="Contact seller">
                     Contact Seller
                   </Button>
                 </div>

@@ -9,6 +9,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Navigation from "./components/Navigation";
 import MobileFooter from "./components/MobileFooter";
 import { DeploymentDiagnostics } from "./components/DeploymentDiagnostics";
+import { SkipToContent } from "./components/SkipToContent";
 
 // Eager-loaded pages for instant navigation
 import Index from "./pages/Index";
@@ -174,10 +175,11 @@ const App = () => {
               <Toaster position="top-right" />
               <BrowserRouter>
                 <div className="min-h-screen bg-background">
+                  <SkipToContent />
                   <ScrollToTop />
                   <Navigation />
-                  <main className="pb-20 md:pb-0">
-                    <Suspense fallback={<div className="min-h-screen" />}>
+                  <main id="main-content" tabIndex={-1} className="pb-20 md:pb-0 focus:outline-none">
+                    <Suspense fallback={<div className="min-h-screen flex items-center justify-center" role="status" aria-label="Loading page content"><div className="animate-pulse text-muted-foreground">Loading...</div></div>}>
                       <Routes>
                         {routeGroups.map(renderRoute)}
                         <Route path="*" element={<NotFound />} />

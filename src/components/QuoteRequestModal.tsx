@@ -98,15 +98,15 @@ export const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" aria-labelledby="quote-modal-title">
       <div className="bg-background rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-background border-b p-6 flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold">Request Quote</h2>
+            <h2 id="quote-modal-title" className="text-2xl font-bold">Request Quote</h2>
             <p className="text-muted-foreground">Get a custom quote for: {serviceTitle}</p>
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-4 w-4" />
+          <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close quote request modal">
+            <X className="h-4 w-4" aria-hidden="true" />
           </Button>
         </div>
 
