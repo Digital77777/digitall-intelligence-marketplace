@@ -1,4 +1,5 @@
 import { toast } from "sonner";
+import { captureException } from './monitoring';
 
 export class AppError extends Error {
   constructor(
@@ -13,6 +14,11 @@ export class AppError extends Error {
 
 export const handleError = (error: unknown, context?: string): void => {
   console.error(`Error in ${context || 'application'}:`, error);
+
+  // Capture error in Sentry
+  if (error instanceof Error) {
+    captureException(error, { context });
+  }
 
   if (error instanceof AppError) {
     toast.error(error.message);
