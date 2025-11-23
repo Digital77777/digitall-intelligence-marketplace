@@ -28,11 +28,10 @@ Deploys to production on pushes to `main` branch.
 
 **Jobs:**
 - **Test**: Runs full test suite before deployment
-- **Deploy to Vercel**: 
-  - Installs Vercel CLI
-  - Pulls environment configuration
+- **Deploy to Netlify**: 
+  - Installs dependencies
   - Builds project with production environment variables
-  - Deploys to Vercel production
+  - Deploys to Netlify production using Netlify CLI
 
 **Triggers:**
 - Push to `main` branch
@@ -44,7 +43,7 @@ Creates preview deployments for pull requests.
 
 **Jobs:**
 - **Deploy Preview**:
-  - Builds and deploys to Vercel preview environment
+  - Builds and deploys to Netlify preview environment
   - Posts preview URL as PR comment
 
 **Triggers:**
@@ -54,11 +53,10 @@ Creates preview deployments for pull requests.
 
 Set these in your repository settings (Settings → Secrets and variables → Actions):
 
-### Vercel Deployment
+### Netlify Deployment
 ```
-VERCEL_TOKEN              # Vercel authentication token
-VERCEL_ORG_ID            # Organization ID (in .vercel/project.json)
-VERCEL_PROJECT_ID        # Project ID (in .vercel/project.json)
+NETLIFY_AUTH_TOKEN       # Netlify personal access token
+NETLIFY_SITE_ID          # Netlify site ID
 ```
 
 ### Application Secrets
@@ -74,41 +72,35 @@ VITE_HUGGINGFACE_API_KEY # Hugging Face API key (optional)
 CODECOV_TOKEN            # Codecov token for coverage reports
 ```
 
-## Setting Up Vercel Integration
+## Setting Up Netlify Integration
 
-### 1. Get Vercel Token
-1. Go to https://vercel.com/account/tokens
-2. Create a new token with appropriate scope
-3. Add as `VERCEL_TOKEN` secret in GitHub
+### 1. Get Netlify Auth Token
+1. Go to https://app.netlify.com/user/applications
+2. Click "New access token"
+3. Give it a descriptive name (e.g., "GitHub Actions")
+4. Copy the token
+5. Add as `NETLIFY_AUTH_TOKEN` secret in GitHub
 
-### 2. Link Project to Vercel
-```bash
-# Install Vercel CLI locally
-npm i -g vercel
+### 2. Get Netlify Site ID
+1. Go to your site in Netlify dashboard
+2. Navigate to Site settings → General
+3. Copy the "Site ID" (API ID)
+4. Add as `NETLIFY_SITE_ID` secret in GitHub
 
-# Login and link project
-vercel login
-vercel link
-
-# This creates .vercel/project.json with ORG_ID and PROJECT_ID
-```
-
-### 3. Add Vercel IDs to GitHub
-Copy `orgId` and `projectId` from `.vercel/project.json` to GitHub secrets:
-- `VERCEL_ORG_ID`
-- `VERCEL_PROJECT_ID`
+### 3. Verify Setup
+Push to a branch and create a PR to test the preview deployment workflow.
 
 ## Workflow Behavior
 
 ### Pull Requests
 1. CI workflow runs tests and build
-2. Preview workflow deploys to Vercel preview environment
+2. Preview workflow deploys to Netlify preview environment
 3. Preview URL is commented on PR
 
 ### Main Branch Push
 1. CI workflow runs tests and build
 2. Deploy workflow runs tests again
-3. Production deployment to Vercel
+3. Production deployment to Netlify
 
 ### Manual Deployment
 Trigger production deployment manually:
@@ -174,20 +166,28 @@ npm run build
 - Check Node.js version matches (use 20.x)
 - Clear npm cache: `npm ci` instead of `npm install`
 
-### Vercel Deployment Fails
-- Verify `VERCEL_TOKEN` is valid
-- Check `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` are correct
-- Ensure project is properly linked: `vercel link`
+### Netlify Deployment Fails
+- Verify `NETLIFY_AUTH_TOKEN` is valid and not expired
+- Check `NETLIFY_SITE_ID` matches your site in Netlify dashboard
+- Ensure site exists in Netlify before first deployment
+- Check Netlify build logs for specific errors
+- Verify build command outputs to `dist` directory
 
 ### Tests Fail on CI
 - Check for environment-specific issues
 - Verify all dependencies are in `package.json`
 - Review test logs in GitHub Actions
+- Ensure no hardcoded paths or environment assumptions
 
 ### Coverage Upload Fails
 - Ensure `CODECOV_TOKEN` is set (if repo is private)
 - Check Codecov integration is enabled
 - Verify coverage files are generated
+
+### Preview Deployment Not Commenting on PR
+- Verify GitHub Actions has write permissions
+- Check the `NETLIFY_OUTPUT` is being captured correctly
+- Ensure `actions/github-script` has proper permissions
 
 ## Performance Optimization
 

@@ -1,4 +1,4 @@
-# 🚀 Deployment Guide - Lovable to Vercel
+# 🚀 Deployment Guide - Netlify
 
 ## ⚠️ Critical: App Architecture
 
@@ -14,25 +14,39 @@
 
 ## 🤖 Automated Deployment with GitHub Actions
 
-This project includes a complete CI/CD pipeline. See **[docs/CI_CD.md](./docs/CI_CD.md)** for full documentation.
+This project includes a complete CI/CD pipeline for Netlify. See **[docs/CI_CD.md](./docs/CI_CD.md)** for full documentation.
 
 ### Quick Setup
 1. Push code to GitHub
-2. Add required secrets to repository (see below)
-3. Push to `main` branch triggers production deployment
-4. Pull requests trigger preview deployments + tests
+2. Create a Netlify site (can be empty initially)
+3. Add required secrets to GitHub repository (see below)
+4. Push to `main` branch triggers production deployment
+5. Pull requests trigger preview deployments + tests
 
 ### Required GitHub Secrets
 Set these in **Repository Settings → Secrets and variables → Actions**:
 ```
-VERCEL_TOKEN              # Vercel authentication token
-VERCEL_ORG_ID            # From .vercel/project.json
-VERCEL_PROJECT_ID        # From .vercel/project.json
+NETLIFY_AUTH_TOKEN       # Netlify personal access token
+NETLIFY_SITE_ID          # Netlify site ID
 VITE_SUPABASE_URL        # Supabase project URL
 VITE_SUPABASE_ANON_KEY   # Supabase anonymous key
 VITE_SENTRY_DSN          # Optional: Sentry DSN
 VITE_HUGGINGFACE_API_KEY # Optional: HuggingFace API key
 ```
+
+### Getting Netlify Credentials
+
+**Netlify Auth Token:**
+1. Go to https://app.netlify.com/user/applications
+2. Click "New access token"
+3. Give it a name and copy the token
+4. Add as `NETLIFY_AUTH_TOKEN` in GitHub
+
+**Netlify Site ID:**
+1. Go to your site in Netlify dashboard
+2. Go to Site settings → General
+3. Copy the "Site ID"
+4. Add as `NETLIFY_SITE_ID` in GitHub
 
 ---
 
@@ -55,22 +69,26 @@ VITE_HUGGINGFACE_API_KEY=your_huggingface_api_key_here
 
 ---
 
-## ⚙️ Vercel Configuration
+## ⚙️ Netlify Configuration
 
 ### **Build Settings**
 - **Framework Preset:** Vite
 - **Build Command:** `npm run build`
-- **Output Directory:** `dist`
-- **Install Command:** `npm install`
-- **Node Version:** 18.x or higher
+- **Publish Directory:** `dist`
+- **Node Version:** 20
 
 ### **Required Files in Repository**
 
-✅ `vercel.json` - Already configured for SPA routing:
-```json
-{
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
-}
+✅ `netlify.toml` - Already configured for SPA routing and caching:
+```toml
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
 ```
 
 ✅ `package.json` - Build script configured
@@ -96,16 +114,19 @@ VITE_HUGGINGFACE_API_KEY=your_huggingface_api_key_here
 ### **Common Issues:**
 
 **Issue:** Routes return 404 on refresh
-**Fix:** Ensure `vercel.json` has SPA rewrites (already configured)
+**Fix:** Ensure `netlify.toml` has SPA redirects (already configured)
 
 **Issue:** Blank white screen
-**Fix:** Check browser console → likely missing env vars
+**Fix:** Check browser console → likely missing env vars in Netlify
 
 **Issue:** "Supabase URL undefined" error
-**Fix:** Ensure env vars are prefixed with `VITE_` in Vercel
+**Fix:** Ensure env vars are set in Netlify dashboard (Site settings → Environment variables)
 
-**Issue:** Different styling in production
-**Fix:** Check Tailwind config purge settings (already correct)
+**Issue:** Build fails with module errors
+**Fix:** Clear cache and retry: Deploys → Trigger deploy → Clear cache and deploy
+
+**Issue:** Environment variables not working
+**Fix:** Ensure they're prefixed with `VITE_` and set in Netlify dashboard
 
 ---
 
@@ -119,16 +140,28 @@ Fully automated deployment pipeline:
 
 See [docs/CI_CD.md](./docs/CI_CD.md) for setup instructions.
 
-### **Method 2: Vercel CLI (Manual)**
+### **Method 2: Netlify CLI (Manual)**
 ```bash
-npm install -g vercel
-vercel --prod
+# Install Netlify CLI
+npm install -g netlify-cli
+
+# Login
+netlify login
+
+# Deploy
+netlify deploy --prod
 ```
 
-### **Method 3: Vercel GitHub Integration**
-1. Connect your GitHub repo to Vercel
-2. Set environment variables in Vercel dashboard
-3. Deploy automatically on push
+### **Method 3: Netlify GitHub Integration**
+1. Go to Netlify dashboard → Add new site → Import from Git
+2. Connect your GitHub repository
+3. Set build settings and environment variables
+4. Netlify will automatically deploy on every push
+
+### **Method 4: Drag & Drop (Quick Test)**
+1. Run `npm run build` locally
+2. Go to Netlify dashboard
+3. Drag the `dist` folder to the deploy area
 
 ---
 
@@ -143,17 +176,36 @@ The app includes automatic diagnostics:
 
 ---
 
-## 🔧 Differences Between Preview & Production
+## 🔧 Environment Variables in Netlify
+
+Set these in **Netlify Dashboard → Site settings → Environment variables**:
+
+### **Required:**
+```
+VITE_SUPABASE_URL
+VITE_SUPABASE_ANON_KEY
+```
+
+### **Optional:**
+```
+VITE_SENTRY_DSN
+VITE_HUGGINGFACE_API_KEY
+```
+
+**Important:** All frontend variables must be prefixed with `VITE_`
+
+## 🔧 Differences Between Environments
 
 ### **Lovable Preview:**
 - Auto-injects environment variables
 - Uses development build
 - Hot module replacement enabled
 
-### **Vercel Production:**
-- Environment variables must be manually set
+### **Netlify Production:**
+- Environment variables must be manually set in dashboard
 - Optimized production build
 - No HMR, fully static assets
+- CDN distribution for fast global access
 
 ---
 
