@@ -18,31 +18,33 @@ jobs:
           node-version: '20.x'
           cache: 'npm'
       
-      - name: Install Vercel CLI
-        run: npm install -g vercel@latest
+      - name: Install dependencies
+        run: npm ci
       
-      - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
-      
-      - name: Build Project Artifacts
-        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Build project
+        run: npm run build
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
       
-      - name: Deploy Preview to Vercel
+      - name: Deploy Preview to Netlify
         id: deploy
-        run: |
-          url=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
-          echo "url=$url" >> $GITHUB_OUTPUT
+        uses: netlify/actions/cli@master
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        with:
+          args: deploy --dir=dist --json
       
       - name: Comment PR with preview URL
         uses: actions/github-script@v7
         with:
           script: |
+            const deployOutput = ${{ steps.deploy.outputs.NETLIFY_OUTPUT }};
+            const previewUrl = deployOutput.deploy_url || 'Preview URL not available';
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `🚀 Preview deployment ready!\n\n**URL**: ${{ steps.deploy.outputs.url }}`
+              body: `🚀 Preview deployment ready!\n\n**URL**: ${previewUrl}`
             })
