@@ -8,6 +8,31 @@
 - Routing: React Router (client-side)
 - Backend: Supabase
 - Build Output: Static SPA
+- CI/CD: GitHub Actions (Automated)
+
+---
+
+## 🤖 Automated Deployment with GitHub Actions
+
+This project includes a complete CI/CD pipeline. See **[docs/CI_CD.md](./docs/CI_CD.md)** for full documentation.
+
+### Quick Setup
+1. Push code to GitHub
+2. Add required secrets to repository (see below)
+3. Push to `main` branch triggers production deployment
+4. Pull requests trigger preview deployments + tests
+
+### Required GitHub Secrets
+Set these in **Repository Settings → Secrets and variables → Actions**:
+```
+VERCEL_TOKEN              # Vercel authentication token
+VERCEL_ORG_ID            # From .vercel/project.json
+VERCEL_PROJECT_ID        # From .vercel/project.json
+VITE_SUPABASE_URL        # Supabase project URL
+VITE_SUPABASE_ANON_KEY   # Supabase anonymous key
+VITE_SENTRY_DSN          # Optional: Sentry DSN
+VITE_HUGGINGFACE_API_KEY # Optional: HuggingFace API key
+```
 
 ---
 
@@ -86,16 +111,24 @@ VITE_HUGGINGFACE_API_KEY=your_huggingface_api_key_here
 
 ## 🛠️ How to Deploy
 
-### **Method 1: GitHub (Recommended)**
-1. Connect your GitHub repo to Vercel
-2. Set environment variables in Vercel dashboard
-3. Deploy automatically on push
+### **Method 1: GitHub Actions CI/CD (Recommended)**
+Fully automated deployment pipeline:
+- **Pull Requests**: Runs tests + creates preview deployment
+- **Main Branch**: Runs tests + deploys to production
+- **Manual**: Trigger via GitHub Actions UI
 
-### **Method 2: Vercel CLI**
+See [docs/CI_CD.md](./docs/CI_CD.md) for setup instructions.
+
+### **Method 2: Vercel CLI (Manual)**
 ```bash
 npm install -g vercel
 vercel --prod
 ```
+
+### **Method 3: Vercel GitHub Integration**
+1. Connect your GitHub repo to Vercel
+2. Set environment variables in Vercel dashboard
+3. Deploy automatically on push
 
 ---
 
