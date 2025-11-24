@@ -273,7 +273,7 @@ const LearningPaths = () => {
       )}
 
       {/* Locked Learning Paths Grid */}
-      {lockedPaths.length > 0 && (
+      {lockedPaths.length > 0 && tierName !== "starter" && (
         <section className="py-12 sm:py-16 bg-muted/30">
           <div className="container mx-auto px-4 sm:px-6">
             <h2 className="text-2xl sm:text-3xl font-bold mb-4 text-center">Upgrade to Unlock More</h2>
