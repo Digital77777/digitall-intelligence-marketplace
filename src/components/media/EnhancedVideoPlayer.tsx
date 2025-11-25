@@ -1,0 +1,309 @@
+import React, { useRef, useState, useEffect } from "react";
+import { Play, Pause, Volume2, VolumeX, Maximize, Settings } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+interface EnhancedVideoPlayerProps {
+  src: string;
+  poster?: string;
+  className?: string;
+}
+
+const QUALITY_OPTIONS = [
+  { label: "Auto", value: "auto" },
+  { label: "1080p", value: "1080p" },
+  { label: "720p", value: "720p" },
+  { label: "480p", value: "480p" },
+  { label: "360p", value: "360p" },
+];
+
+const PLAYBACK_SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2];
+
+export const EnhancedVideoPlayer = ({ src, poster, className = "" }: EnhancedVideoPlayerProps) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [volume, setVolume] = useState(1);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showControls, setShowControls] = useState(true);
+  const [quality, setQuality] = useState("auto");
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const hideControlsTimeout = useRef<NodeJS.Timeout>();
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleTimeUpdate = () => setCurrentTime(video.currentTime);
+    const handleDurationChange = () => setDuration(video.duration);
+    const handleEnded = () => setIsPlaying(false);
+
+    video.addEventListener("timeupdate", handleTimeUpdate);
+    video.addEventListener("durationchange", handleDurationChange);
+    video.addEventListener("ended", handleEnded);
+
+    return () => {
+      video.removeEventListener("timeupdate", handleTimeUpdate);
+      video.removeEventListener("durationchange", handleDurationChange);
+      video.removeEventListener("ended", handleEnded);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
+
+  const togglePlay = () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (isPlaying) {
+      video.pause();
+    } else {
+      video.play();
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  const toggleMute = () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.muted = !isMuted;
+    setIsMuted(!isMuted);
+  };
+
+  const handleVolumeChange = (value: number[]) => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const newVolume = value[0];
+    video.volume = newVolume;
+    setVolume(newVolume);
+    setIsMuted(newVolume === 0);
+  };
+
+  const handleSeek = (value: number[]) => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.currentTime = value[0];
+    setCurrentTime(value[0]);
+  };
+
+  const toggleFullscreen = () => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    if (!document.fullscreenElement) {
+      container.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  };
+
+  const handleQualityChange = (newQuality: string) => {
+    setQuality(newQuality);
+    // In a real implementation, you would switch video sources here
+    console.log("Quality changed to:", newQuality);
+  };
+
+  const handleSpeedChange = (speed: number) => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.playbackRate = speed;
+    setPlaybackSpeed(speed);
+  };
+
+  const formatTime = (seconds: number) => {
+    if (isNaN(seconds)) return "0:00";
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  const handleMouseMove = () => {
+    setShowControls(true);
+    if (hideControlsTimeout.current) {
+      clearTimeout(hideControlsTimeout.current);
+    }
+    hideControlsTimeout.current = setTimeout(() => {
+      if (isPlaying) setShowControls(false);
+    }, 3000);
+  };
+
+  return (
+    <div
+      ref={containerRef}
+      className={`relative bg-black group ${className}`}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={() => isPlaying && setShowControls(false)}
+    >
+      <video
+        ref={videoRef}
+        src={src}
+        poster={poster}
+        className="w-full h-full object-contain"
+        onClick={togglePlay}
+      />
+
+      {/* Play button overlay */}
+      {!isPlaying && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <Button
+            size="lg"
+            variant="ghost"
+            className="w-20 h-20 rounded-full bg-white/90 hover:bg-white hover:scale-110 transition-all"
+            onClick={togglePlay}
+          >
+            <Play className="w-10 h-10 text-primary ml-1" fill="currentColor" />
+          </Button>
+        </div>
+      )}
+
+      {/* Controls */}
+      <div
+        className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 transition-opacity duration-300 ${
+          showControls ? "opacity-100" : "opacity-0"
+        }`}
+      >
+        {/* Progress bar */}
+        <div className="mb-3">
+          <Slider
+            value={[currentTime]}
+            min={0}
+            max={duration || 100}
+            step={0.1}
+            onValueChange={handleSeek}
+            className="cursor-pointer"
+          />
+        </div>
+
+        {/* Control buttons */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            {/* Play/Pause */}
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-white hover:bg-white/20"
+              onClick={togglePlay}
+            >
+              {isPlaying ? (
+                <Pause className="w-5 h-5" />
+              ) : (
+                <Play className="w-5 h-5" />
+              )}
+            </Button>
+
+            {/* Volume */}
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="ghost"
+                className="text-white hover:bg-white/20"
+                onClick={toggleMute}
+              >
+                {isMuted || volume === 0 ? (
+                  <VolumeX className="w-5 h-5" />
+                ) : (
+                  <Volume2 className="w-5 h-5" />
+                )}
+              </Button>
+              <div className="w-20 hidden sm:block">
+                <Slider
+                  value={[isMuted ? 0 : volume]}
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  onValueChange={handleVolumeChange}
+                  className="cursor-pointer"
+                />
+              </div>
+            </div>
+
+            {/* Time */}
+            <span className="text-white text-sm hidden sm:inline">
+              {formatTime(currentTime)} / {formatTime(duration)}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* Playback speed */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-white hover:bg-white/20 text-xs"
+                >
+                  {playbackSpeed}x
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {PLAYBACK_SPEEDS.map((speed) => (
+                  <DropdownMenuItem
+                    key={speed}
+                    onClick={() => handleSpeedChange(speed)}
+                    className={playbackSpeed === speed ? "bg-accent" : ""}
+                  >
+                    {speed}x
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Quality selector */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-white hover:bg-white/20"
+                >
+                  <Settings className="w-5 h-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {QUALITY_OPTIONS.map((option) => (
+                  <DropdownMenuItem
+                    key={option.value}
+                    onClick={() => handleQualityChange(option.value)}
+                    className={quality === option.value ? "bg-accent" : ""}
+                  >
+                    {option.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Fullscreen */}
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-white hover:bg-white/20"
+              onClick={toggleFullscreen}
+            >
+              <Maximize className="w-5 h-5" />
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

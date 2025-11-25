@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { EnhancedImage } from "@/components/media/EnhancedImage";
+import { EnhancedVideoPlayer } from "@/components/media/EnhancedVideoPlayer";
 
 interface InsightDetailModalProps {
   insight: CommunityInsight;
@@ -93,11 +94,11 @@ export const InsightDetailModal = ({ insight, open, onOpenChange }: InsightDetai
           
           {/* Cover Video */}
           {!insight.cover_image && insight.videos && insight.videos.length > 0 && (
-            <div className="rounded-lg overflow-hidden bg-muted/30">
-              <video 
-                src={insight.videos[0]} 
-                controls
-                className="w-full h-auto object-contain"
+            <div className="rounded-lg overflow-hidden bg-black">
+              <EnhancedVideoPlayer
+                src={insight.videos[0]}
+                poster={insight.video_thumbnails?.[0]}
+                className="w-full aspect-video"
               />
             </div>
           )}
