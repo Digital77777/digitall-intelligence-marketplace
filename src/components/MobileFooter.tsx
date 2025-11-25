@@ -46,10 +46,12 @@ const MobileFooter = () => {
 
   return (
     <nav 
-      className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-t border-border/50 shadow-sm pb-[env(safe-area-inset-bottom)] touch-action-manipulation" 
+      className="md:hidden fixed bottom-0 left-0 right-0 z-[9999] bg-background/95 backdrop-blur-lg border-t border-border/50 shadow-sm pb-[env(safe-area-inset-bottom)] touch-action-manipulation" 
       style={{ 
         WebkitBackdropFilter: 'blur(16px)',
-        willChange: 'transform'
+        willChange: 'transform',
+        position: 'fixed',
+        bottom: 0
       }}
       aria-label="Mobile navigation" 
       role="navigation"
