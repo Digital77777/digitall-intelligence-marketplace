@@ -26,7 +26,7 @@ import { SEOHead } from "@/components/SEOHead";
 const CommunityPage = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("topics");
+  const [activeTab, setActiveTab] = useState("insights");
   const [filterOpen, setFilterOpen] = useState(false);
   const [sortBy, setSortBy] = useState("recent");
   const [eventType, setEventType] = useState("all");
@@ -322,8 +322,13 @@ const CommunityPage = () => {
             </div>
 
             {/* Tabs Navigation */}
-            <Tabs defaultValue="topics" className="w-full" onValueChange={setActiveTab}>
+            <Tabs defaultValue="insights" className="w-full" onValueChange={setActiveTab}>
               <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="insights" className="flex items-center justify-center gap-1.5 data-[state=active]:bg-primary/10">
+                  <TrendingUp className="h-4 w-4 shrink-0" />
+                  <span className="hidden sm:inline">Insights</span>
+                  <span className="sm:hidden text-xs">Insights</span>
+                </TabsTrigger>
                 <TabsTrigger value="topics" className="flex items-center justify-center gap-1.5 data-[state=active]:bg-primary/10">
                   <MessageCircle className="h-4 w-4 shrink-0" />
                   <span className="hidden sm:inline">Discussion</span>
@@ -333,11 +338,6 @@ const CommunityPage = () => {
                   <Calendar className="h-4 w-4 shrink-0" />
                   <span className="hidden sm:inline">Live Events</span>
                   <span className="sm:hidden text-xs">Events</span>
-                </TabsTrigger>
-                <TabsTrigger value="insights" className="flex items-center justify-center gap-1.5 data-[state=active]:bg-primary/10">
-                  <TrendingUp className="h-4 w-4 shrink-0" />
-                  <span className="hidden sm:inline">Insights</span>
-                  <span className="sm:hidden text-xs">Insights</span>
                 </TabsTrigger>
               </TabsList>
 
