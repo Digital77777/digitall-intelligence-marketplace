@@ -27,12 +27,12 @@ export const InsightCard = memo(({ insight, onLikeClick, onViewClick, getInitial
 
   return (
     <Card 
-      className="hover:shadow-md transition-shadow cursor-pointer overflow-hidden"
+      className="hover:shadow-md transition-shadow cursor-pointer overflow-hidden max-w-full"
       onClick={handleCardClick}
     >
       <CardContent className="p-0">
         {insight.cover_image && (
-          <div className="w-full aspect-video relative overflow-hidden">
+          <div className="w-full aspect-video relative overflow-hidden max-h-[300px]">
             <EnhancedImage 
               src={insight.cover_image} 
               alt={insight.title}
@@ -40,23 +40,23 @@ export const InsightCard = memo(({ insight, onLikeClick, onViewClick, getInitial
             />
           </div>
         )}
-        <div className="p-4 sm:p-6">
-          <div className="flex items-center gap-2.5 sm:gap-3 mb-3 sm:mb-4">
-            <Avatar className="w-8 h-8 sm:w-10 sm:h-10 shrink-0">
-              <AvatarFallback className="text-xs sm:text-sm bg-primary/10 text-primary">
+        <div className="p-4">
+          <div className="flex items-center gap-3 mb-3">
+            <Avatar className="w-9 h-9 shrink-0">
+              <AvatarFallback className="text-sm bg-primary/10 text-primary">
                 {getInitials(insight.profiles?.full_name, insight.profiles?.email)}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-xs sm:text-sm truncate">
+              <p className="font-medium text-sm truncate">
                 {insight.profiles?.full_name || insight.profiles?.email || "Anonymous"}
               </p>
-              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0 h-4 sm:h-auto">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="outline" className="text-xs px-2 py-0.5">
                   {insight.category}
                 </Badge>
                 {insight.read_time && (
-                  <Badge variant="secondary" className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0 h-4 sm:h-auto">
+                  <Badge variant="secondary" className="text-xs px-2 py-0.5">
                     {insight.read_time}
                   </Badge>
                 )}
@@ -64,21 +64,21 @@ export const InsightCard = memo(({ insight, onLikeClick, onViewClick, getInitial
             </div>
           </div>
 
-          <h3 className="text-base sm:text-lg font-semibold mb-2 leading-tight line-clamp-2">
+          <h3 className="text-lg font-semibold mb-2 leading-tight line-clamp-2">
             {insight.title}
           </h3>
-          <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4 line-clamp-3">
-            {insight.content.substring(0, 150)}...
+          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+            {insight.content.substring(0, 120)}...
           </p>
 
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
+            <div className="flex items-center gap-3 text-sm text-muted-foreground">
               <div className="flex items-center gap-1">
-                <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <TrendingUp className="w-4 h-4" />
                 <span>{insight.views_count}</span>
               </div>
               <div className="flex items-center gap-1">
-                <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <Heart className="w-4 h-4" />
                 <span>{insight.likes_count}</span>
               </div>
             </div>
@@ -86,19 +86,19 @@ export const InsightCard = memo(({ insight, onLikeClick, onViewClick, getInitial
               <Button
                 size="sm"
                 variant={insight.is_liked ? "default" : "outline"}
-                className="h-7 sm:h-8 text-xs sm:text-sm px-2 sm:px-3"
+                className="h-8 text-sm px-3"
                 onClick={handleLikeClick}
               >
-                <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-1.5 ${insight.is_liked ? 'fill-current' : ''}`} />
-                <span className="hidden sm:inline">{insight.is_liked ? 'Liked' : 'Like'}</span>
+                <Heart className={`w-4 h-4 mr-1.5 ${insight.is_liked ? 'fill-current' : ''}`} />
+                {insight.is_liked ? 'Liked' : 'Like'}
               </Button>
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-7 sm:h-8 text-xs sm:text-sm px-2 sm:px-3"
+                className="h-8 text-sm px-3"
               >
-                <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-1.5" />
-                <span className="hidden sm:inline">Read</span>
+                <Eye className="w-4 h-4 mr-1.5" />
+                Read
               </Button>
             </div>
           </div>
