@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Filter, MapPin, DollarSign, Clock, Star, Briefcase, ChevronDown } from "lucide-react";
+import { Search, Filter, MapPin, DollarSign, Clock, Briefcase, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import StarRating from "@/components/marketplace/StarRating";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -24,6 +25,8 @@ interface FreelancerProfile {
   languages: string[];
   availability: string;
   profile_picture: string;
+  averageRating?: number;
+  totalReviews?: number;
 }
 
 const BrowseFreelancersPage = () => {
@@ -56,7 +59,36 @@ const BrowseFreelancersPage = () => {
 
       if (error) throw error;
 
-      setProfiles(data || []);
+      if (data && data.length > 0) {
+        // Fetch ratings for all profiles
+        const profileIds = data.map(p => p.id);
+        const { data: reviewsData } = await supabase
+          .from('freelancer_reviews')
+          .select('freelancer_profile_id, rating')
+          .in('freelancer_profile_id', profileIds);
+
+        // Calculate average ratings
+        const ratingsMap = new Map<string, { total: number; count: number }>();
+        reviewsData?.forEach(review => {
+          const existing = ratingsMap.get(review.freelancer_profile_id) || { total: 0, count: 0 };
+          ratingsMap.set(review.freelancer_profile_id, {
+            total: existing.total + review.rating,
+            count: existing.count + 1
+          });
+        });
+
+        const profilesWithRatings = data.map(profile => ({
+          ...profile,
+          averageRating: ratingsMap.has(profile.id) 
+            ? Math.round((ratingsMap.get(profile.id)!.total / ratingsMap.get(profile.id)!.count) * 10) / 10
+            : 0,
+          totalReviews: ratingsMap.get(profile.id)?.count || 0
+        }));
+
+        setProfiles(profilesWithRatings);
+      } else {
+        setProfiles([]);
+      }
     } catch (error: any) {
       console.error('Error loading profiles:', error);
       toast.error("Failed to load freelancer profiles");
@@ -304,6 +336,14 @@ const BrowseFreelancersPage = () => {
 
                     {/* Details */}
                     <div className="space-y-2 text-sm">
+                      {profile.totalReviews && profile.totalReviews > 0 ? (
+                        <div className="flex items-center gap-2">
+                          <StarRating rating={profile.averageRating || 0} size="sm" showValue />
+                          <span className="text-muted-foreground">
+                            ({profile.totalReviews})
+                          </span>
+                        </div>
+                      ) : null}
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <DollarSign className="h-4 w-4" />
                         <span className="font-semibold text-foreground">${profile.hourly_rate}/hr</span>
