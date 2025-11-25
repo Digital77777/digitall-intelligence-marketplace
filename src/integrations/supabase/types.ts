@@ -865,6 +865,60 @@ export type Database = {
         }
         Relationships: []
       }
+      quote_requests: {
+        Row: {
+          admin_notes: string | null
+          budget: string | null
+          company: string | null
+          created_at: string
+          email: string
+          id: string
+          name: string
+          phone: string | null
+          project_description: string
+          requirements: string | null
+          service_title: string
+          status: string
+          timeline: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          budget?: string | null
+          company?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          phone?: string | null
+          project_description: string
+          requirements?: string | null
+          service_title: string
+          status?: string
+          timeline?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          budget?: string | null
+          company?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          phone?: string | null
+          project_description?: string
+          requirements?: string | null
+          service_title?: string
+          status?: string
+          timeline?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       referral_contests: {
         Row: {
           contest_entry_date: string | null
