@@ -47,3 +47,6 @@ verify_jwt = false
 
 [functions.send-session-notification]
 verify_jwt = false
+
+[functions.ai-tutor]
+verify_jwt = false
