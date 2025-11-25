@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 interface FreelancerProfileData {
   name: string;
@@ -44,6 +46,8 @@ const availabilityOptions = [
 
 const CreateFreelancerProfilePage = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState<FreelancerProfileData>({
     name: "",
@@ -127,9 +131,14 @@ const CreateFreelancerProfilePage = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!user) {
+      toast.error("You must be logged in to create a profile");
+      return;
+    }
+
     // Basic validation
     if (!formData.name || !formData.title || !formData.bio || !formData.hourlyRate) {
       toast.error("Please fill in all required fields");
@@ -141,15 +150,39 @@ const CreateFreelancerProfilePage = () => {
       return;
     }
 
-    // Simulate profile creation
-    console.log("Freelancer profile data:", formData);
-    
-    toast.success("Profile created successfully! You're now visible to potential clients.");
-    
-    // Navigate back to freelance services page
-    setTimeout(() => {
-      navigate("/marketplace/freelance-services");
-    }, 2000);
+    setIsSubmitting(true);
+
+    try {
+      const { error } = await supabase
+        .from('freelancer_profiles')
+        .upsert({
+          user_id: user.id,
+          name: formData.name,
+          title: formData.title,
+          bio: formData.bio,
+          hourly_rate: parseFloat(formData.hourlyRate),
+          experience: formData.experience,
+          location: formData.location,
+          skills: formData.skills,
+          languages: formData.languages,
+          portfolio_items: formData.portfolioItems,
+          availability: formData.availability,
+          profile_picture: formData.profilePicture,
+          is_active: true
+        }, {
+          onConflict: 'user_id'
+        });
+
+      if (error) throw error;
+
+      toast.success("Profile created successfully! You're now visible to potential clients.");
+      navigate("/seller-dashboard");
+    } catch (error: any) {
+      console.error('Error creating profile:', error);
+      toast.error(error.message || "Failed to create profile. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -419,12 +452,18 @@ const CreateFreelancerProfilePage = () => {
               </Card>
 
               <div className="flex flex-col sm:flex-row gap-4 pt-6">
-                <Button type="submit" size="lg" className="flex-1">
+                <Button type="submit" size="lg" className="flex-1" disabled={isSubmitting}>
                   <Star className="h-4 w-4 mr-2" />
-                  Create Profile
+                  {isSubmitting ? "Creating Profile..." : "Create Profile"}
                 </Button>
-                <Button type="button" variant="outline" size="lg" onClick={() => navigate("/marketplace/freelance-services")}>
-                  Save as Draft
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="lg" 
+                  onClick={() => navigate("/marketplace/freelance-services")}
+                  disabled={isSubmitting}
+                >
+                  Cancel
                 </Button>
               </div>
             </form>
