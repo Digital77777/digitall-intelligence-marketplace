@@ -1,13 +1,13 @@
-import { Bot, Brain, Sparkles, MessageSquare, BookOpen, Target, TrendingUp, Zap, Calendar, Clock, Award, Send, Loader2, Trash2, User } from 'lucide-react';
+import { Bot, Brain, Sparkles, MessageSquare, BookOpen, Target, TrendingUp, Zap, Award, Send, Loader2, Trash2, User } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { useState, useRef, useEffect } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { MessageContent } from '@/components/chat/MessageContent';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -276,7 +276,7 @@ const PersonalAITutorPage = () => {
                                 : 'bg-muted'
                             }`}
                           >
-                            <div className="whitespace-pre-wrap text-sm">{msg.content}</div>
+                            <MessageContent content={msg.content} isUser={msg.role === 'user'} />
                           </div>
                           {msg.role === 'user' && (
                             <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center">
