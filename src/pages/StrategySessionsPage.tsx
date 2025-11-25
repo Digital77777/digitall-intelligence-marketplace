@@ -2,7 +2,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
-import { Target, Calendar as CalendarIcon, Clock, Video, CheckCircle2, Crown, User, Loader2, X } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Target, Calendar as CalendarIcon, Clock, Video, CheckCircle2, Crown, User, Loader2, X, FileText } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,6 +22,7 @@ interface StrategySession {
   consultant: string | null;
   meeting_link: string | null;
   status: string;
+  notes: string | null;
 }
 
 export default function StrategySessionsPage() {
@@ -28,6 +33,12 @@ export default function StrategySessionsPage() {
   const [sessions, setSessions] = useState<StrategySession[]>([]);
   const [loading, setLoading] = useState(true);
   const [booking, setBooking] = useState(false);
+  
+  // Booking dialog state
+  const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
+  const [selectedTopic, setSelectedTopic] = useState<string>('');
+  const [sessionNotes, setSessionNotes] = useState('');
 
   const availableSlots = [
     '09:00 AM', '10:00 AM', '11:00 AM',
@@ -83,7 +94,7 @@ export default function StrategySessionsPage() {
     }
   };
 
-  const handleBookSession = async (slot: string) => {
+  const openBookingDialog = (slot: string) => {
     if (!user) {
       navigate('/auth');
       return;
@@ -110,10 +121,18 @@ export default function StrategySessionsPage() {
       return;
     }
 
+    setSelectedSlot(slot);
+    setSelectedTopic('');
+    setSessionNotes('');
+    setBookingDialogOpen(true);
+  };
+
+  const handleConfirmBooking = async () => {
+    if (!user || !selectedDate || !selectedSlot) return;
+
     setBooking(true);
     
     try {
-      // Assign a random consultant
       const consultant = consultants[Math.floor(Math.random() * consultants.length)];
       const formattedDate = format(selectedDate, 'yyyy-MM-dd');
       const displayDate = format(selectedDate, 'MMMM d, yyyy');
@@ -123,8 +142,10 @@ export default function StrategySessionsPage() {
         .insert({
           user_id: user.id,
           session_date: formattedDate,
-          session_time: slot,
+          session_time: selectedSlot,
           consultant,
+          topic: selectedTopic || null,
+          notes: sessionNotes || null,
           status: 'scheduled',
         });
 
@@ -137,21 +158,22 @@ export default function StrategySessionsPage() {
             userEmail: user.email,
             userName: user.user_metadata?.full_name || user.email?.split('@')[0],
             sessionDate: displayDate,
-            sessionTime: slot,
+            sessionTime: selectedSlot,
             consultant,
+            topic: selectedTopic || 'General Strategy Consultation',
           },
         });
         console.log('Session notification emails sent');
       } catch (emailError) {
         console.error('Failed to send notification emails:', emailError);
-        // Don't fail the booking if email fails
       }
 
       toast({
         title: "Session Booked!",
-        description: `Your strategy session is scheduled for ${displayDate} at ${slot} with ${consultant}`,
+        description: `Your strategy session is scheduled for ${displayDate} at ${selectedSlot} with ${consultant}`,
       });
 
+      setBookingDialogOpen(false);
       fetchSessions();
     } catch (error) {
       console.error('Error booking session:', error);
@@ -231,15 +253,10 @@ export default function StrategySessionsPage() {
                     <Button
                       key={slot}
                       variant="outline"
-                      onClick={() => handleBookSession(slot)}
+                      onClick={() => openBookingDialog(slot)}
                       className="w-full"
-                      disabled={booking}
                     >
-                      {booking ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <Clock className="h-4 w-4 mr-2" />
-                      )}
+                      <Clock className="h-4 w-4 mr-2" />
                       {slot}
                     </Button>
                   ))}
@@ -340,6 +357,12 @@ export default function StrategySessionsPage() {
                         )}
                         <Badge variant="outline">Video Call</Badge>
                       </div>
+                      {session.notes && (
+                        <p className="mt-2 text-sm text-muted-foreground flex items-start gap-1">
+                          <FileText className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                          <span className="line-clamp-2">{session.notes}</span>
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -366,6 +389,71 @@ export default function StrategySessionsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Booking Dialog */}
+      <Dialog open={bookingDialogOpen} onOpenChange={setBookingDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Complete Your Booking</DialogTitle>
+            <DialogDescription>
+              {selectedDate && selectedSlot && (
+                <>Booking for {format(selectedDate, 'MMMM d, yyyy')} at {selectedSlot}</>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="topic">Session Topic</Label>
+              <Select value={selectedTopic} onValueChange={setSelectedTopic}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a topic for your session" />
+                </SelectTrigger>
+                <SelectContent>
+                  {sessionTopics.map((topic) => (
+                    <SelectItem key={topic} value={topic}>
+                      {topic}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Choose the main focus area for your consultation
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes & Questions (Optional)</Label>
+              <Textarea
+                id="notes"
+                placeholder="Share any specific questions or topics you'd like to discuss during the session..."
+                value={sessionNotes}
+                onChange={(e) => setSessionNotes(e.target.value)}
+                rows={4}
+              />
+              <p className="text-xs text-muted-foreground">
+                Help your consultant prepare by sharing what you'd like to achieve
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBookingDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleConfirmBooking} disabled={booking}>
+              {booking ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Booking...
+                </>
+              ) : (
+                'Confirm Booking'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
