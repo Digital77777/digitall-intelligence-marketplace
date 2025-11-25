@@ -96,6 +96,23 @@ export const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({
         });
 
       if (error) throw error;
+
+      // Send email notifications (non-blocking)
+      supabase.functions.invoke('send-quote-notification', {
+        body: {
+          name: formData.name,
+          email: formData.email,
+          company: formData.company || undefined,
+          phone: formData.phone || undefined,
+          serviceTitle: serviceTitle,
+          projectDescription: formData.projectDescription,
+          timeline: formData.timeline || undefined,
+          budget: formData.budget || undefined,
+          requirements: formData.requirements || undefined
+        }
+      }).catch(err => {
+        console.error('Failed to send notification email:', err);
+      });
       
       toast.success("Quote request submitted successfully! Our team will contact you within 24 hours with a detailed proposal.");
       
