@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { 
   Clock, FileText, CheckCircle, AlertCircle, XCircle, 
-  Eye, Trash2, Calendar, DollarSign, Filter
+  Eye, Trash2, Calendar, DollarSign, Filter, Edit
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +28,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { AIDevWizard, EditProjectData } from "./AIDevWizard";
 
 interface AIProject {
   id: string;
@@ -54,6 +55,8 @@ export const AIProjectsDashboard = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedProject, setSelectedProject] = useState<AIProject | null>(null);
   const [deleteProject, setDeleteProject] = useState<AIProject | null>(null);
+  const [editProject, setEditProject] = useState<EditProjectData | null>(null);
+  const [wizardOpen, setWizardOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -99,6 +102,32 @@ export const AIProjectsDashboard = () => {
       toast.error('Failed to delete project');
     } finally {
       setDeleteProject(null);
+    }
+  };
+
+  const handleEditProject = (project: AIProject) => {
+    setEditProject({
+      id: project.id,
+      project_name: project.project_name,
+      project_type: project.project_type,
+      description: project.description,
+      requirements: project.requirements,
+      budget_min: project.budget_min,
+      budget_max: project.budget_max,
+      currency: project.currency,
+      timeline: project.timeline,
+      priority: project.priority,
+      target_industry: project.target_industry,
+      technologies: project.technologies || [],
+      status: project.status,
+    });
+    setWizardOpen(true);
+  };
+
+  const handleWizardClose = (open: boolean) => {
+    setWizardOpen(open);
+    if (!open) {
+      setEditProject(null);
     }
   };
 
@@ -309,13 +338,22 @@ export const AIProjectsDashboard = () => {
                     View
                   </Button>
                   {project.status === 'draft' && (
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => setDeleteProject(project)}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                    <>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleEditProject(project)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => setDeleteProject(project)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </>
                   )}
                 </div>
               </CardContent>
@@ -335,6 +373,14 @@ export const AIProjectsDashboard = () => {
           </div>
         )}
       </div>
+
+      {/* Edit Wizard */}
+      <AIDevWizard 
+        open={wizardOpen} 
+        onOpenChange={handleWizardClose}
+        editProject={editProject}
+        onProjectUpdated={loadProjects}
+      />
 
       {/* Project Details Modal */}
       <Dialog open={!!selectedProject} onOpenChange={() => setSelectedProject(null)}>
@@ -410,6 +456,21 @@ export const AIProjectsDashboard = () => {
                     <span>Submitted: {format(new Date(selectedProject.submitted_at), 'PPP')}</span>
                   )}
                 </div>
+
+                {selectedProject.status === 'draft' && (
+                  <div className="flex gap-2 pt-2">
+                    <Button 
+                      className="flex-1"
+                      onClick={() => {
+                        setSelectedProject(null);
+                        handleEditProject(selectedProject);
+                      }}
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit Project
+                    </Button>
+                  </div>
+                )}
               </div>
             </>
           )}
