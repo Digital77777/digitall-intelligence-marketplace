@@ -1,10 +1,12 @@
 
 import { Briefcase, Clock, Star, TrendingUp, Users, Shield } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 const FreelanceServicesPage = () => {
+  const navigate = useNavigate();
   const serviceCategories = [
     {
       title: "AI Consulting",
@@ -141,7 +143,7 @@ const FreelanceServicesPage = () => {
               Join the world's largest marketplace for AI freelancers. Set your rates, choose your projects, and build a thriving consultancy business.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Button size="lg" className="bg-gradient-earn text-white hover:opacity-90">
+              <Button size="lg" className="bg-gradient-earn text-white hover:opacity-90" onClick={() => navigate('/marketplace/create-freelancer-profile')}>
                 <Briefcase className="h-5 w-5 mr-2" />
                 Start Freelancing
               </Button>
@@ -290,7 +292,7 @@ const FreelanceServicesPage = () => {
             <p className="text-muted-foreground mb-8">
               Join thousands of AI experts building successful freelance careers on our platform.
             </p>
-            <Button size="lg" className="bg-gradient-earn text-white hover:opacity-90" onClick={() => window.location.href = '/marketplace/create-freelancer-profile'}>
+            <Button size="lg" className="bg-gradient-earn text-white hover:opacity-90" onClick={() => navigate('/marketplace/create-freelancer-profile')}>
               <Briefcase className="h-5 w-5 mr-2" />
               Create Freelancer Profile
             </Button>
