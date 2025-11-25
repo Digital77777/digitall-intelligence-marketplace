@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
-import { Play, Pause, Volume2, VolumeX, Maximize, Settings } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, Maximize, Settings, PictureInPicture2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import {
@@ -8,6 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
 
 interface EnhancedVideoPlayerProps {
   src: string;
@@ -28,12 +29,14 @@ const PLAYBACK_SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2];
 export const EnhancedVideoPlayer = ({ src, poster, className = "" }: EnhancedVideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(1);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isPiP, setIsPiP] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [quality, setQuality] = useState("auto");
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
@@ -63,8 +66,19 @@ export const EnhancedVideoPlayer = ({ src, poster, className = "" }: EnhancedVid
       setIsFullscreen(!!document.fullscreenElement);
     };
 
+    const handlePiPChange = () => {
+      setIsPiP(document.pictureInPictureElement === videoRef.current);
+    };
+
     document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    videoRef.current?.addEventListener("enterpictureinpicture", handlePiPChange);
+    videoRef.current?.addEventListener("leavepictureinpicture", handlePiPChange);
+    
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      videoRef.current?.removeEventListener("enterpictureinpicture", handlePiPChange);
+      videoRef.current?.removeEventListener("leavepictureinpicture", handlePiPChange);
+    };
   }, []);
 
   const togglePlay = () => {
@@ -113,6 +127,45 @@ export const EnhancedVideoPlayer = ({ src, poster, className = "" }: EnhancedVid
       container.requestFullscreen();
     } else {
       document.exitFullscreen();
+    }
+  };
+
+  const togglePiP = async () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    // Check if PiP is supported
+    if (!document.pictureInPictureEnabled) {
+      toast({
+        title: "Not Supported",
+        description: "Picture-in-Picture is not supported in your browser.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+      } else {
+        // Ensure video has started playing at least once for PiP to work
+        if (video.readyState < 2) {
+          await video.play();
+          video.pause();
+        }
+        await video.requestPictureInPicture();
+        toast({
+          title: "Picture-in-Picture",
+          description: "Video is now playing in a floating window. Browse other insights while watching!",
+        });
+      }
+    } catch (error) {
+      console.error("PiP error:", error);
+      toast({
+        title: "PiP Failed",
+        description: "Could not enable Picture-in-Picture mode.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -291,6 +344,17 @@ export const EnhancedVideoPlayer = ({ src, poster, className = "" }: EnhancedVid
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {/* Picture-in-Picture */}
+            <Button
+              size="sm"
+              variant="ghost"
+              className={`text-white hover:bg-white/20 ${isPiP ? "bg-white/30" : ""}`}
+              onClick={togglePiP}
+              title="Picture-in-Picture"
+            >
+              <PictureInPicture2 className="w-5 h-5" />
+            </Button>
 
             {/* Fullscreen */}
             <Button
