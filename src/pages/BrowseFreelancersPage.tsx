@@ -259,7 +259,11 @@ const BrowseFreelancersPage = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredProfiles.map((profile) => (
-                <Card key={profile.id} className="hover:shadow-lg transition-shadow cursor-pointer group">
+                <Card 
+                  key={profile.id} 
+                  className="hover:shadow-lg transition-shadow cursor-pointer group"
+                  onClick={() => navigate(`/marketplace/freelancer/${profile.id}`)}
+                >
                   <CardHeader>
                     <div className="flex items-start gap-4">
                       <Avatar className="h-16 w-16 border-2 border-primary/10">
