@@ -42,6 +42,7 @@ const FreelanceServicesPage = lazy(() => import("./pages/FreelanceServicesPage")
 const MyListingsPage = lazy(() => import("./pages/MyListingsPage"));
 const CreateListingPage = lazy(() => import("./pages/CreateListingPage"));
 const ScheduleConsultationPage = lazy(() => import("./pages/ScheduleConsultationPage"));
+const SellerDashboardPage = lazy(() => import("./pages/SellerDashboardPage"));
 
 // Community - Lazy loaded
 const MyActivityPage = lazy(() => import("./pages/MyActivityPage"));
@@ -134,6 +135,7 @@ const routeGroups: AppRoute[] = [
   { path: "/marketplace/schedule-consultation", component: ScheduleConsultationPage, protected: true },
   { path: "/marketplace/my-listings", component: MyListingsPage, protected: true },
   { path: "/marketplace/create", component: CreateListingPage, protected: true },
+  { path: "/seller-dashboard", component: SellerDashboardPage, protected: true },
 
   // Community
   { path: "/community", component: CommunityPage, protected: true },
