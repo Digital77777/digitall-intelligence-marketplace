@@ -90,6 +90,17 @@ export const InsightDetailModal = ({ insight, open, onOpenChange }: InsightDetai
               />
             </div>
           )}
+          
+          {/* Cover Video */}
+          {!insight.cover_image && insight.videos && insight.videos.length > 0 && (
+            <div className="rounded-lg overflow-hidden bg-muted/30">
+              <video 
+                src={insight.videos[0]} 
+                controls
+                className="w-full h-auto object-contain"
+              />
+            </div>
+          )}
 
           {/* Content */}
           <div className="prose prose-sm max-w-none">

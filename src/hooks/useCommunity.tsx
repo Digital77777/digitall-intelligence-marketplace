@@ -281,6 +281,7 @@ export const useCommunity = () => {
       category: string;
       read_time?: string;
       cover_image?: string;
+      videos?: string[];
     }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");

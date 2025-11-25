@@ -40,6 +40,15 @@ export const InsightCard = memo(({ insight, onLikeClick, onViewClick, getInitial
             />
           </div>
         )}
+        {!insight.cover_image && insight.videos && insight.videos.length > 0 && (
+          <div className="w-full relative overflow-hidden">
+            <video 
+              src={insight.videos[0]} 
+              controls
+              className="w-full h-auto object-contain"
+            />
+          </div>
+        )}
         <div className="p-4">
           <div className="flex items-center gap-3 mb-3">
             <Avatar className="w-9 h-9 shrink-0">

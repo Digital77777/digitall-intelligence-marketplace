@@ -49,6 +49,7 @@ const ShareInsightPage = () => {
         category: formData.category,
         read_time: formData.readTime || undefined,
         cover_image: coverImages[0] || undefined,
+        videos: coverVideos.length > 0 ? coverVideos : undefined,
       });
       navigate("/community");
     } finally {
@@ -136,15 +137,18 @@ const ShareInsightPage = () => {
               </div>
 
               <div className="space-y-2">
-                <Label>Cover Image (Optional)</Label>
+                <Label>Cover Media (Optional)</Label>
+                <p className="text-xs text-muted-foreground">
+                  Upload one image or video to showcase your insight
+                </p>
                 <MediaUploader
                   images={coverImages}
                   videos={coverVideos}
                   onImagesChange={setCoverImages}
                   onVideosChange={setCoverVideos}
                   maxImages={1}
-                  maxVideos={0}
-                  maxFileSize={5}
+                  maxVideos={1}
+                  maxFileSize={20}
                 />
               </div>
 
