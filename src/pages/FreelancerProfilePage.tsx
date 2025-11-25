@@ -5,6 +5,9 @@ import { useAuth } from '@/hooks/useAuth';
 import Navigation from '@/components/Navigation';
 import MobileFooter from '@/components/MobileFooter';
 import ProposalForm from '@/components/marketplace/ProposalForm';
+import ReviewForm from '@/components/marketplace/ReviewForm';
+import ReviewsList from '@/components/marketplace/ReviewsList';
+import StarRating from '@/components/marketplace/StarRating';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -59,6 +62,8 @@ const FreelancerProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
+  const [ratingStats, setRatingStats] = useState({ averageRating: 0, totalReviews: 0 });
+  const [reviewsKey, setReviewsKey] = useState(0);
 
   useEffect(() => {
     if (id) {
@@ -204,6 +209,16 @@ const FreelancerProfilePage = () => {
                     <h1 className="text-2xl font-bold text-foreground">{profile.name}</h1>
                     <p className="text-lg text-primary font-medium mt-1">{profile.title}</p>
                     
+                    {/* Rating Display */}
+                    {ratingStats.totalReviews > 0 && (
+                      <div className="flex items-center gap-2 mt-2">
+                        <StarRating rating={ratingStats.averageRating} size="sm" showValue />
+                        <span className="text-sm text-muted-foreground">
+                          ({ratingStats.totalReviews} review{ratingStats.totalReviews !== 1 ? 's' : ''})
+                        </span>
+                      </div>
+                    )}
+                    
                     <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 mt-4 text-sm text-muted-foreground">
                       {profile.location && (
                         <span className="flex items-center gap-1">
@@ -324,17 +339,32 @@ const FreelancerProfilePage = () => {
             {/* Reviews Section */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Star className="h-5 w-5 text-yellow-500" />
-                  Reviews
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Star className="h-5 w-5 text-yellow-500" />
+                    Reviews
+                    {ratingStats.totalReviews > 0 && (
+                      <Badge variant="secondary" className="ml-2">
+                        {ratingStats.totalReviews}
+                      </Badge>
+                    )}
+                  </CardTitle>
+                  {!isOwnProfile && (
+                    <ReviewForm
+                      freelancerProfileId={profile.id}
+                      freelancerUserId={profile.user_id}
+                      freelancerName={profile.name}
+                      onSuccess={() => setReviewsKey(prev => prev + 1)}
+                    />
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-8 text-muted-foreground">
-                  <Star className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                  <p>No reviews yet</p>
-                  <p className="text-sm mt-1">Be the first to work with {profile.name.split(' ')[0]}!</p>
-                </div>
+                <ReviewsList
+                  key={reviewsKey}
+                  freelancerProfileId={profile.id}
+                  onReviewsLoaded={setRatingStats}
+                />
               </CardContent>
             </Card>
           </div>

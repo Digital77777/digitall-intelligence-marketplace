@@ -421,6 +421,63 @@ export type Database = {
           },
         ]
       }
+      freelancer_reviews: {
+        Row: {
+          client_id: string
+          created_at: string
+          freelancer_profile_id: string
+          freelancer_user_id: string
+          id: string
+          is_verified: boolean | null
+          proposal_id: string | null
+          rating: number
+          review_text: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          freelancer_profile_id: string
+          freelancer_user_id: string
+          id?: string
+          is_verified?: boolean | null
+          proposal_id?: string | null
+          rating: number
+          review_text: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          freelancer_profile_id?: string
+          freelancer_user_id?: string
+          id?: string
+          is_verified?: boolean | null
+          proposal_id?: string | null
+          rating?: number
+          review_text?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "freelancer_reviews_freelancer_profile_id_fkey"
+            columns: ["freelancer_profile_id"]
+            isOneToOne: false
+            referencedRelation: "freelancer_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "freelancer_reviews_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "freelancer_proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       insight_likes: {
         Row: {
           created_at: string | null
@@ -1160,6 +1217,13 @@ export type Database = {
         Args: never
         Returns: {
           role: string
+        }[]
+      }
+      get_freelancer_rating: {
+        Args: { p_freelancer_profile_id: string }
+        Returns: {
+          average_rating: number
+          total_reviews: number
         }[]
       }
       get_sellers_for_review: {
