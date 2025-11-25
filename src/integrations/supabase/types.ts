@@ -293,6 +293,63 @@ export type Database = {
           },
         ]
       }
+      freelancer_profiles: {
+        Row: {
+          availability: string | null
+          bio: string
+          created_at: string
+          experience: string | null
+          hourly_rate: number
+          id: string
+          is_active: boolean | null
+          languages: string[]
+          location: string | null
+          name: string
+          portfolio_items: Json | null
+          profile_picture: string | null
+          skills: string[]
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          availability?: string | null
+          bio: string
+          created_at?: string
+          experience?: string | null
+          hourly_rate: number
+          id?: string
+          is_active?: boolean | null
+          languages?: string[]
+          location?: string | null
+          name: string
+          portfolio_items?: Json | null
+          profile_picture?: string | null
+          skills?: string[]
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          availability?: string | null
+          bio?: string
+          created_at?: string
+          experience?: string | null
+          hourly_rate?: number
+          id?: string
+          is_active?: boolean | null
+          languages?: string[]
+          location?: string | null
+          name?: string
+          portfolio_items?: Json | null
+          profile_picture?: string | null
+          skills?: string[]
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       insight_likes: {
         Row: {
           created_at: string | null
