@@ -350,6 +350,77 @@ export type Database = {
         }
         Relationships: []
       }
+      freelancer_proposals: {
+        Row: {
+          attachments: string[] | null
+          budget_amount: number
+          budget_type: string
+          client_id: string
+          client_message: string | null
+          created_at: string
+          deadline: string | null
+          estimated_hours: number | null
+          freelancer_profile_id: string
+          freelancer_response: string | null
+          freelancer_user_id: string
+          id: string
+          project_description: string
+          project_title: string
+          responded_at: string | null
+          status: string
+          timeline: string
+          updated_at: string
+        }
+        Insert: {
+          attachments?: string[] | null
+          budget_amount: number
+          budget_type: string
+          client_id: string
+          client_message?: string | null
+          created_at?: string
+          deadline?: string | null
+          estimated_hours?: number | null
+          freelancer_profile_id: string
+          freelancer_response?: string | null
+          freelancer_user_id: string
+          id?: string
+          project_description: string
+          project_title: string
+          responded_at?: string | null
+          status?: string
+          timeline: string
+          updated_at?: string
+        }
+        Update: {
+          attachments?: string[] | null
+          budget_amount?: number
+          budget_type?: string
+          client_id?: string
+          client_message?: string | null
+          created_at?: string
+          deadline?: string | null
+          estimated_hours?: number | null
+          freelancer_profile_id?: string
+          freelancer_response?: string | null
+          freelancer_user_id?: string
+          id?: string
+          project_description?: string
+          project_title?: string
+          responded_at?: string | null
+          status?: string
+          timeline?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "freelancer_proposals_freelancer_profile_id_fkey"
+            columns: ["freelancer_profile_id"]
+            isOneToOne: false
+            referencedRelation: "freelancer_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       insight_likes: {
         Row: {
           created_at: string | null

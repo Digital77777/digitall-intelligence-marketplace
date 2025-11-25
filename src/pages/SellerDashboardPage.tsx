@@ -7,7 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { QuickStats } from '@/components/tier/shared/QuickStats';
-import { Package, DollarSign, MessageSquare, TrendingUp, Plus, Eye, Edit, User, MapPin, Clock, Briefcase } from 'lucide-react';
+import ProposalsList from '@/components/marketplace/ProposalsList';
+import { Package, DollarSign, MessageSquare, TrendingUp, Plus, Eye, Edit, User, MapPin, Clock, Briefcase, FileText } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -49,6 +50,7 @@ const SellerDashboardPage = () => {
     totalEarnings: 0,
     unreadMessages: 0,
     totalViews: 0,
+    pendingProposals: 0,
   });
 
   useEffect(() => {
@@ -97,12 +99,20 @@ const SellerDashboardPage = () => {
         .eq('receiver_id', user?.id)
         .eq('is_read', false);
 
+      // Fetch pending proposals count
+      const { count: proposalsCount } = await supabase
+        .from('freelancer_proposals')
+        .select('*', { count: 'exact', head: true })
+        .eq('freelancer_user_id', user?.id)
+        .eq('status', 'pending');
+
       setStats({
         totalListings: listingsData?.length || 0,
         activeListings,
         totalEarnings: 0, // Placeholder for earnings integration
         unreadMessages: unreadCount || 0,
         totalViews: 0, // Placeholder for views tracking
+        pendingProposals: proposalsCount || 0,
       });
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -128,6 +138,11 @@ const SellerDashboardPage = () => {
       icon: <Package className="h-8 w-8 text-primary" />,
     },
     {
+      value: stats.pendingProposals.toString(),
+      label: 'Pending Proposals',
+      icon: <FileText className="h-8 w-8 text-primary" />,
+    },
+    {
       value: `R${stats.totalEarnings.toFixed(2)}`,
       label: 'Total Earnings',
       icon: <DollarSign className="h-8 w-8 text-primary" />,
@@ -136,11 +151,6 @@ const SellerDashboardPage = () => {
       value: stats.unreadMessages.toString(),
       label: 'Unread Messages',
       icon: <MessageSquare className="h-8 w-8 text-primary" />,
-    },
-    {
-      value: stats.totalViews.toString(),
-      label: 'Total Views',
-      icon: <Eye className="h-8 w-8 text-primary" />,
     },
   ];
 
@@ -284,12 +294,37 @@ const SellerDashboardPage = () => {
 
         <QuickStats stats={quickStats} />
 
-        <Tabs defaultValue="listings" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs defaultValue="proposals" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="proposals">
+              Proposals
+              {stats.pendingProposals > 0 && (
+                <Badge variant="destructive" className="ml-2 h-5 w-5 p-0 text-xs flex items-center justify-center">
+                  {stats.pendingProposals}
+                </Badge>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="listings">Listings</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="messages">Messages</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="proposals" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Project Proposals
+                </CardTitle>
+                <CardDescription>
+                  Review and respond to project proposals from clients
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ProposalsList type="received" />
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="listings" className="space-y-6">
             <Card>

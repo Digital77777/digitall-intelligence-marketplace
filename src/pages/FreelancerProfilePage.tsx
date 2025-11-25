@@ -4,12 +4,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import Navigation from '@/components/Navigation';
 import MobileFooter from '@/components/MobileFooter';
+import ProposalForm from '@/components/marketplace/ProposalForm';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { 
   ArrowLeft, 
@@ -21,7 +23,8 @@ import {
   Globe,
   Briefcase,
   ExternalLink,
-  Send
+  Send,
+  FileText
 } from 'lucide-react';
 
 interface PortfolioItem {
@@ -336,7 +339,7 @@ const FreelancerProfilePage = () => {
             </Card>
           </div>
 
-          {/* Sidebar - Contact Section */}
+          {/* Sidebar - Contact & Proposal Section */}
           <div className="space-y-6">
             <Card className="sticky top-24">
               <CardHeader>
@@ -364,34 +367,54 @@ const FreelancerProfilePage = () => {
                     </Button>
                   </div>
                 ) : (
-                  <>
-                    <Textarea
-                      placeholder={`Hi ${profile.name.split(' ')[0]}, I'd like to discuss a project with you...`}
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      rows={4}
-                    />
-                    <Button 
-                      className="w-full" 
-                      onClick={handleSendMessage}
-                      disabled={sendingMessage || !message.trim()}
-                    >
-                      {sendingMessage ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-background mr-2"></div>
-                          Sending...
-                        </>
-                      ) : (
-                        <>
-                          <Send className="h-4 w-4 mr-2" />
-                          Send Message
-                        </>
-                      )}
-                    </Button>
-                    <p className="text-xs text-muted-foreground text-center">
-                      {user ? 'Your message will be sent directly to the freelancer' : 'Sign in to send a message'}
-                    </p>
-                  </>
+                  <Tabs defaultValue="proposal" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="proposal" className="text-xs">
+                        <FileText className="h-3 w-3 mr-1" />
+                        Proposal
+                      </TabsTrigger>
+                      <TabsTrigger value="message" className="text-xs">
+                        <MessageCircle className="h-3 w-3 mr-1" />
+                        Message
+                      </TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="proposal" className="mt-4">
+                      <ProposalForm
+                        freelancerProfileId={profile.id}
+                        freelancerUserId={profile.user_id}
+                        freelancerName={profile.name}
+                        hourlyRate={profile.hourly_rate}
+                      />
+                    </TabsContent>
+                    <TabsContent value="message" className="mt-4 space-y-4">
+                      <Textarea
+                        placeholder={`Hi ${profile.name.split(' ')[0]}, I'd like to discuss a project with you...`}
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        rows={4}
+                      />
+                      <Button 
+                        className="w-full" 
+                        onClick={handleSendMessage}
+                        disabled={sendingMessage || !message.trim()}
+                      >
+                        {sendingMessage ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-background mr-2"></div>
+                            Sending...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="h-4 w-4 mr-2" />
+                            Send Message
+                          </>
+                        )}
+                      </Button>
+                      <p className="text-xs text-muted-foreground text-center">
+                        {user ? 'Your message will be sent directly to the freelancer' : 'Sign in to send a message'}
+                      </p>
+                    </TabsContent>
+                  </Tabs>
                 )}
               </CardContent>
             </Card>
