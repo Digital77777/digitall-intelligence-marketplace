@@ -1,5 +1,5 @@
 import React, { memo, useCallback } from "react";
-import { Heart, TrendingUp, Eye } from "lucide-react";
+import { Heart, TrendingUp, Eye, Play } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -41,12 +41,26 @@ export const InsightCard = memo(({ insight, onLikeClick, onViewClick, getInitial
           </div>
         )}
         {!insight.cover_image && insight.videos && insight.videos.length > 0 && (
-          <div className="w-full relative overflow-hidden">
-            <video 
-              src={insight.videos[0]} 
-              controls
-              className="w-full h-auto object-contain"
-            />
+          <div className="w-full relative overflow-hidden group cursor-pointer">
+            {insight.video_thumbnails && insight.video_thumbnails[0] ? (
+              <div className="relative">
+                <img 
+                  src={insight.video_thumbnails[0]} 
+                  alt={`${insight.title} video preview`}
+                  className="w-full h-auto object-contain"
+                />
+                <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                  <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
+                    <Play className="w-8 h-8 text-primary ml-1" fill="currentColor" />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <video 
+                src={insight.videos[0]} 
+                className="w-full h-auto object-contain"
+              />
+            )}
           </div>
         )}
         <div className="p-4">

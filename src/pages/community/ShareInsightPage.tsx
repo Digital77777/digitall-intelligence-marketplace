@@ -10,10 +10,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useCommunity } from "@/hooks/useCommunity";
 import { useAuth } from "@/hooks/useAuth";
 import { MediaUploader } from "@/components/media/MediaUploader";
+import { generateVideoThumbnail } from "@/lib/videoThumbnail";
+import { useToast } from "@/hooks/use-toast";
 
 const ShareInsightPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { toast } = useToast();
   const { createInsight } = useCommunity();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -24,9 +27,35 @@ const ShareInsightPage = () => {
   });
   const [coverImages, setCoverImages] = useState<string[]>([]);
   const [coverVideos, setCoverVideos] = useState<string[]>([]);
+  const [videoThumbnails, setVideoThumbnails] = useState<string[]>([]);
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleVideosChange = async (videos: string[]) => {
+    setCoverVideos(videos);
+    
+    // Generate thumbnails for new videos
+    if (videos.length > 0) {
+      try {
+        const thumbnails: string[] = [];
+        for (const videoUrl of videos) {
+          const thumbnail = await generateVideoThumbnail(videoUrl, 1);
+          thumbnails.push(thumbnail);
+        }
+        setVideoThumbnails(thumbnails);
+      } catch (error) {
+        console.error('Error generating video thumbnails:', error);
+        toast({
+          title: "Thumbnail Generation Failed",
+          description: "Could not generate video preview, but video will still be uploaded.",
+          variant: "destructive",
+        });
+      }
+    } else {
+      setVideoThumbnails([]);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -50,6 +79,7 @@ const ShareInsightPage = () => {
         read_time: formData.readTime || undefined,
         cover_image: coverImages[0] || undefined,
         videos: coverVideos.length > 0 ? coverVideos : undefined,
+        video_thumbnails: videoThumbnails.length > 0 ? videoThumbnails : undefined,
       });
       navigate("/community");
     } finally {
@@ -145,7 +175,7 @@ const ShareInsightPage = () => {
                   images={coverImages}
                   videos={coverVideos}
                   onImagesChange={setCoverImages}
-                  onVideosChange={setCoverVideos}
+                  onVideosChange={handleVideosChange}
                   maxImages={1}
                   maxVideos={1}
                   maxFileSize={20}
