@@ -32,11 +32,11 @@ export const InsightCard = memo(({ insight, onLikeClick, onViewClick, getInitial
     >
       <CardContent className="p-0">
         {insight.cover_image && (
-          <div className="w-full aspect-video relative overflow-hidden max-h-[300px]">
+          <div className="w-full relative overflow-hidden">
             <EnhancedImage 
               src={insight.cover_image} 
               alt={insight.title}
-              className="w-full h-full object-cover"
+              className="w-full h-auto object-contain"
             />
           </div>
         )}
