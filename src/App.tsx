@@ -41,6 +41,7 @@ const SellProductsPage = lazy(() => import("./pages/SellProductsPage"));
 const FreelanceServicesPage = lazy(() => import("./pages/FreelanceServicesPage"));
 const CreateFreelancerProfilePage = lazy(() => import("./pages/CreateFreelancerProfilePage"));
 const BrowseFreelancersPage = lazy(() => import("./pages/BrowseFreelancersPage"));
+const FreelancerProfilePage = lazy(() => import("./pages/FreelancerProfilePage"));
 const MyListingsPage = lazy(() => import("./pages/MyListingsPage"));
 const CreateListingPage = lazy(() => import("./pages/CreateListingPage"));
 const ScheduleConsultationPage = lazy(() => import("./pages/ScheduleConsultationPage"));
@@ -136,6 +137,7 @@ const routeGroups: AppRoute[] = [
   { path: "/marketplace/freelance-services", component: FreelanceServicesPage, protected: true },
   { path: "/marketplace/create-freelancer-profile", component: CreateFreelancerProfilePage, protected: true },
   { path: "/marketplace/browse-freelancers", component: BrowseFreelancersPage, protected: true },
+  { path: "/marketplace/freelancer/:id", component: FreelancerProfilePage, protected: true },
   { path: "/marketplace/schedule-consultation", component: ScheduleConsultationPage, protected: true },
   { path: "/marketplace/my-listings", component: MyListingsPage, protected: true },
   { path: "/marketplace/create", component: CreateListingPage, protected: true },
