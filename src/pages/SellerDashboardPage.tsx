@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { QuickStats } from '@/components/tier/shared/QuickStats';
 import ProposalsList from '@/components/marketplace/ProposalsList';
-import { Package, DollarSign, MessageSquare, TrendingUp, Plus, Eye, Edit, User, MapPin, Clock, Briefcase, FileText } from 'lucide-react';
+import { JobApplicationsList } from '@/components/marketplace/JobApplicationsList';
+import { Package, DollarSign, MessageSquare, TrendingUp, Plus, Edit, User, MapPin, Clock, Briefcase, FileText, Users } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -51,6 +52,7 @@ const SellerDashboardPage = () => {
     unreadMessages: 0,
     totalViews: 0,
     pendingProposals: 0,
+    pendingJobApplications: 0,
   });
 
   useEffect(() => {
@@ -106,6 +108,24 @@ const SellerDashboardPage = () => {
         .eq('freelancer_user_id', user?.id)
         .eq('status', 'pending');
 
+      // Fetch pending job applications count (for jobs posted by this user)
+      const { data: userJobs } = await supabase
+        .from('marketplace_listings')
+        .select('id')
+        .eq('user_id', user?.id)
+        .eq('listing_type', 'job');
+
+      let jobApplicationsCount = 0;
+      if (userJobs && userJobs.length > 0) {
+        const jobIds = userJobs.map(j => j.id);
+        const { count } = await supabase
+          .from('job_applications')
+          .select('*', { count: 'exact', head: true })
+          .in('job_listing_id', jobIds)
+          .eq('status', 'pending');
+        jobApplicationsCount = count || 0;
+      }
+
       setStats({
         totalListings: listingsData?.length || 0,
         activeListings,
@@ -113,6 +133,7 @@ const SellerDashboardPage = () => {
         unreadMessages: unreadCount || 0,
         totalViews: 0, // Placeholder for views tracking
         pendingProposals: proposalsCount || 0,
+        pendingJobApplications: jobApplicationsCount,
       });
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -143,9 +164,9 @@ const SellerDashboardPage = () => {
       icon: <FileText className="h-8 w-8 text-primary" />,
     },
     {
-      value: `R${stats.totalEarnings.toFixed(2)}`,
-      label: 'Total Earnings',
-      icon: <DollarSign className="h-8 w-8 text-primary" />,
+      value: stats.pendingJobApplications.toString(),
+      label: 'Job Applications',
+      icon: <Users className="h-8 w-8 text-primary" />,
     },
     {
       value: stats.unreadMessages.toString(),
@@ -153,6 +174,10 @@ const SellerDashboardPage = () => {
       icon: <MessageSquare className="h-8 w-8 text-primary" />,
     },
   ];
+
+  const handleJobApplicationCountChange = (count: number) => {
+    setStats(prev => ({ ...prev, pendingJobApplications: count }));
+  };
 
   if (loading) {
     return (
@@ -295,12 +320,20 @@ const SellerDashboardPage = () => {
         <QuickStats stats={quickStats} />
 
         <Tabs defaultValue="proposals" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="proposals">
               Proposals
               {stats.pendingProposals > 0 && (
                 <Badge variant="destructive" className="ml-2 h-5 w-5 p-0 text-xs flex items-center justify-center">
                   {stats.pendingProposals}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="applications">
+              Job Apps
+              {stats.pendingJobApplications > 0 && (
+                <Badge variant="destructive" className="ml-2 h-5 w-5 p-0 text-xs flex items-center justify-center">
+                  {stats.pendingJobApplications}
                 </Badge>
               )}
             </TabsTrigger>
@@ -322,6 +355,23 @@ const SellerDashboardPage = () => {
               </CardHeader>
               <CardContent>
                 <ProposalsList type="received" />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="applications" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Job Applications
+                </CardTitle>
+                <CardDescription>
+                  Review and manage applications for your job postings
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <JobApplicationsList onApplicationCountChange={handleJobApplicationCountChange} />
               </CardContent>
             </Card>
           </TabsContent>
