@@ -178,7 +178,7 @@ const App = () => {
                   <SkipToContent />
                   <ScrollToTop />
                   <Navigation />
-                  <main id="main-content" tabIndex={-1} className="pb-20 md:pb-0 focus:outline-none">
+                  <main id="main-content" tabIndex={-1} className="pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-0 focus:outline-none">
                     <Suspense fallback={<div className="min-h-screen flex items-center justify-center" role="status" aria-label="Loading page content"><div className="animate-pulse text-muted-foreground">Loading...</div></div>}>
                       <Routes>
                         {routeGroups.map(renderRoute)}
