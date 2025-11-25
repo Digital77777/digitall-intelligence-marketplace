@@ -59,6 +59,69 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_development_projects: {
+        Row: {
+          attachments: string[] | null
+          budget_max: number | null
+          budget_min: number | null
+          created_at: string
+          currency: string | null
+          description: string
+          id: string
+          priority: string | null
+          project_name: string
+          project_type: string
+          requirements: string | null
+          status: string
+          submitted_at: string | null
+          target_industry: string | null
+          technologies: string[] | null
+          timeline: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attachments?: string[] | null
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string
+          currency?: string | null
+          description: string
+          id?: string
+          priority?: string | null
+          project_name: string
+          project_type: string
+          requirements?: string | null
+          status?: string
+          submitted_at?: string | null
+          target_industry?: string | null
+          technologies?: string[] | null
+          timeline: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attachments?: string[] | null
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string
+          currency?: string | null
+          description?: string
+          id?: string
+          priority?: string | null
+          project_name?: string
+          project_type?: string
+          requirements?: string | null
+          status?: string
+          submitted_at?: string | null
+          target_industry?: string | null
+          technologies?: string[] | null
+          timeline?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       community_events: {
         Row: {
           attendees_count: number | null
