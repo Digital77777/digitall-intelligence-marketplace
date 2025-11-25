@@ -1,4 +1,4 @@
-import { Bot, Brain, Sparkles, MessageSquare, BookOpen, Target, TrendingUp, Zap, Award, Send, Loader2, Trash2, User, Plus, History, Clock } from 'lucide-react';
+import { Bot, Brain, Sparkles, MessageSquare, BookOpen, Target, TrendingUp, Zap, Award, Send, Loader2, Trash2, User, Plus, History, Clock, Download, FileText, FileDown } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useRef, useEffect, useState } from 'react';
@@ -10,6 +10,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageContent } from '@/components/chat/MessageContent';
 import { useAITutorSessions } from '@/hooks/useAITutorSessions';
 import { formatDistanceToNow } from 'date-fns';
+import { exportToMarkdown, exportToPDF } from '@/lib/conversationExport';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 const CHAT_URL = 'https://uegujjkjkoohucpbdjwj.supabase.co/functions/v1/ai-tutor';
 
@@ -202,6 +204,26 @@ const PersonalAITutorPage = () => {
     toast.success('Started new conversation');
   };
 
+  const handleExportMarkdown = () => {
+    if (messages.length === 0) {
+      toast.error('No messages to export');
+      return;
+    }
+    const title = sessions.find(s => s.id === currentSessionId)?.title || 'AI Tutor Conversation';
+    exportToMarkdown(title, messages);
+    toast.success('Exported as Markdown');
+  };
+
+  const handleExportPDF = () => {
+    if (messages.length === 0) {
+      toast.error('No messages to export');
+      return;
+    }
+    const title = sessions.find(s => s.id === currentSessionId)?.title || 'AI Tutor Conversation';
+    exportToPDF(title, messages);
+    toast.success('Exported as PDF');
+  };
+
   const tutorFeatures = [
     { icon: <Brain className="h-6 w-6 text-primary" />, title: "Adaptive Learning", description: "AI adjusts to your pace" },
     { icon: <Target className="h-6 w-6 text-primary" />, title: "Personalized Path", description: "Custom curriculum" },
@@ -253,10 +275,32 @@ const PersonalAITutorPage = () => {
                   </CardTitle>
                   <CardDescription>Ask anything about AI, programming, or career guidance</CardDescription>
                 </div>
-                <Button variant="outline" size="sm" onClick={handleNewChat}>
-                  <Plus className="h-4 w-4 mr-1" />
-                  New Chat
-                </Button>
+                <div className="flex items-center gap-2">
+                  {messages.length > 0 && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          <Download className="h-4 w-4 mr-1" />
+                          Export
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={handleExportMarkdown}>
+                          <FileText className="h-4 w-4 mr-2" />
+                          Export as Markdown
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleExportPDF}>
+                          <FileDown className="h-4 w-4 mr-2" />
+                          Export as PDF
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                  <Button variant="outline" size="sm" onClick={handleNewChat}>
+                    <Plus className="h-4 w-4 mr-1" />
+                    New Chat
+                  </Button>
+                </div>
               </CardHeader>
               
               <CardContent className="flex-1 flex flex-col overflow-hidden p-0">
