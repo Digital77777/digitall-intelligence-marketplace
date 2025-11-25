@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { useTier } from "@/contexts/TierContext";
 import { AIDevWizard } from "@/components/ai-development/AIDevWizard";
+import { AIProjectsDashboard } from "@/components/ai-development/AIProjectsDashboard";
 import Navigation from "@/components/Navigation";
 import MobileFooter from "@/components/MobileFooter";
 import { SEOHead } from "@/components/SEOHead";
@@ -211,6 +212,9 @@ const AIDevelopmentPage = () => {
           </div>
         </div>
       </section>
+
+      {/* My Projects Dashboard */}
+      <AIProjectsDashboard />
 
       {/* Development Services */}
       <section className="py-16">
