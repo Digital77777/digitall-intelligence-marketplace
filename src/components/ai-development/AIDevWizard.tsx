@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
-import { ArrowLeft, ArrowRight, Check, Loader2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Loader2, Save } from 'lucide-react';
 import { ProjectDetailsStep } from './steps/ProjectDetailsStep';
 import { RequirementsStep } from './steps/RequirementsStep';
 import { BudgetTimelineStep } from './steps/BudgetTimelineStep';
@@ -25,6 +25,22 @@ export interface AIProjectData {
   priority: string;
   targetIndustry: string;
   technologies: string[];
+}
+
+export interface EditProjectData {
+  id: string;
+  project_name: string;
+  project_type: string;
+  description: string;
+  requirements: string | null;
+  budget_min: number | null;
+  budget_max: number | null;
+  currency: string;
+  timeline: string;
+  priority: string;
+  target_industry: string | null;
+  technologies: string[];
+  status: string;
 }
 
 const INITIAL_DATA: AIProjectData = {
@@ -51,17 +67,43 @@ const STEPS = [
 interface AIDevWizardProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  editProject?: EditProjectData | null;
+  onProjectUpdated?: () => void;
 }
 
-export const AIDevWizard = ({ open, onOpenChange }: AIDevWizardProps) => {
+export const AIDevWizard = ({ open, onOpenChange, editProject, onProjectUpdated }: AIDevWizardProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { tierName, canAccessFeature } = useTier();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<AIProjectData>(INITIAL_DATA);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
 
+  const isEditing = !!editProject;
   const canAccess = tierName === 'creator' || tierName === 'career' || canAccessFeature('marketplace_sell');
+
+  // Populate form when editing
+  useEffect(() => {
+    if (editProject && open) {
+      setFormData({
+        projectName: editProject.project_name,
+        projectType: editProject.project_type,
+        description: editProject.description,
+        requirements: editProject.requirements || '',
+        budgetMin: editProject.budget_min?.toString() || '',
+        budgetMax: editProject.budget_max?.toString() || '',
+        currency: editProject.currency || 'USD',
+        timeline: editProject.timeline,
+        priority: editProject.priority || 'medium',
+        targetIndustry: editProject.target_industry || '',
+        technologies: editProject.technologies || [],
+      });
+    } else if (!open) {
+      setFormData(INITIAL_DATA);
+      setCurrentStep(1);
+    }
+  }, [editProject, open]);
 
   const updateFormData = (updates: Partial<AIProjectData>) => {
     setFormData(prev => ({ ...prev, ...updates }));
@@ -94,6 +136,70 @@ export const AIDevWizard = ({ open, onOpenChange }: AIDevWizardProps) => {
     setCurrentStep(prev => Math.max(prev - 1, 1));
   };
 
+  const getProjectPayload = () => ({
+    project_name: formData.projectName,
+    project_type: formData.projectType,
+    description: formData.description,
+    requirements: formData.requirements || null,
+    budget_min: formData.budgetMin ? parseFloat(formData.budgetMin) : null,
+    budget_max: formData.budgetMax ? parseFloat(formData.budgetMax) : null,
+    currency: formData.currency,
+    timeline: formData.timeline,
+    priority: formData.priority,
+    target_industry: formData.targetIndustry || null,
+    technologies: formData.technologies,
+  });
+
+  const handleSaveDraft = async () => {
+    if (!user) {
+      toast.error('Please sign in to save a draft');
+      return;
+    }
+
+    if (!formData.projectName) {
+      toast.error('Please enter a project name to save as draft');
+      return;
+    }
+
+    setIsSavingDraft(true);
+
+    try {
+      const payload = getProjectPayload();
+
+      if (isEditing && editProject) {
+        const { error } = await supabase
+          .from('ai_development_projects')
+          .update({
+            ...payload,
+            status: 'draft',
+          })
+          .eq('id', editProject.id);
+
+        if (error) throw error;
+        toast.success('Draft updated successfully!');
+      } else {
+        const { error } = await supabase
+          .from('ai_development_projects')
+          .insert({
+            ...payload,
+            user_id: user.id,
+            status: 'draft',
+          });
+
+        if (error) throw error;
+        toast.success('Draft saved successfully!');
+      }
+
+      onProjectUpdated?.();
+      handleClose();
+    } catch (error) {
+      console.error('Error saving draft:', error);
+      toast.error('Failed to save draft. Please try again.');
+    } finally {
+      setIsSavingDraft(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!user) {
       toast.error('Please sign in to submit a project');
@@ -108,31 +214,36 @@ export const AIDevWizard = ({ open, onOpenChange }: AIDevWizardProps) => {
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase
-        .from('ai_development_projects')
-        .insert({
-          user_id: user.id,
-          project_name: formData.projectName,
-          project_type: formData.projectType,
-          description: formData.description,
-          requirements: formData.requirements || null,
-          budget_min: formData.budgetMin ? parseFloat(formData.budgetMin) : null,
-          budget_max: formData.budgetMax ? parseFloat(formData.budgetMax) : null,
-          currency: formData.currency,
-          timeline: formData.timeline,
-          priority: formData.priority,
-          target_industry: formData.targetIndustry || null,
-          technologies: formData.technologies,
-          status: 'submitted',
-          submitted_at: new Date().toISOString(),
-        });
+      const payload = getProjectPayload();
 
-      if (error) throw error;
+      if (isEditing && editProject) {
+        const { error } = await supabase
+          .from('ai_development_projects')
+          .update({
+            ...payload,
+            status: 'submitted',
+            submitted_at: new Date().toISOString(),
+          })
+          .eq('id', editProject.id);
 
-      toast.success('AI Development project submitted successfully!');
-      onOpenChange(false);
-      setFormData(INITIAL_DATA);
-      setCurrentStep(1);
+        if (error) throw error;
+        toast.success('AI Development project updated and submitted!');
+      } else {
+        const { error } = await supabase
+          .from('ai_development_projects')
+          .insert({
+            ...payload,
+            user_id: user.id,
+            status: 'submitted',
+            submitted_at: new Date().toISOString(),
+          });
+
+        if (error) throw error;
+        toast.success('AI Development project submitted successfully!');
+      }
+
+      onProjectUpdated?.();
+      handleClose();
       navigate('/seller-dashboard');
     } catch (error) {
       console.error('Error submitting project:', error);
@@ -182,7 +293,9 @@ export const AIDevWizard = ({ open, onOpenChange }: AIDevWizardProps) => {
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Start AI Development Project</DialogTitle>
+          <DialogTitle>
+            {isEditing ? 'Edit AI Development Project' : 'Start AI Development Project'}
+          </DialogTitle>
           <DialogDescription>
             Step {currentStep} of {STEPS.length}: {STEPS[currentStep - 1].description}
           </DialogDescription>
@@ -222,14 +335,36 @@ export const AIDevWizard = ({ open, onOpenChange }: AIDevWizardProps) => {
 
           {/* Navigation Buttons */}
           <div className="flex justify-between pt-4 border-t">
-            <Button
-              variant="outline"
-              onClick={handlePrevious}
-              disabled={currentStep === 1 || isSubmitting}
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Previous
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={handlePrevious}
+                disabled={currentStep === 1 || isSubmitting || isSavingDraft}
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Previous
+              </Button>
+              
+              {currentStep === STEPS.length && (
+                <Button
+                  variant="ghost"
+                  onClick={handleSaveDraft}
+                  disabled={isSubmitting || isSavingDraft || !formData.projectName}
+                >
+                  {isSavingDraft ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Draft
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
 
             {currentStep < STEPS.length ? (
               <Button onClick={handleNext} disabled={!validateStep(currentStep)}>
@@ -237,7 +372,7 @@ export const AIDevWizard = ({ open, onOpenChange }: AIDevWizardProps) => {
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             ) : (
-              <Button onClick={handleSubmit} disabled={isSubmitting}>
+              <Button onClick={handleSubmit} disabled={isSubmitting || isSavingDraft}>
                 {isSubmitting ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -246,7 +381,7 @@ export const AIDevWizard = ({ open, onOpenChange }: AIDevWizardProps) => {
                 ) : (
                   <>
                     <Check className="h-4 w-4 mr-2" />
-                    Submit Project
+                    {isEditing ? 'Update & Submit' : 'Submit Project'}
                   </>
                 )}
               </Button>
