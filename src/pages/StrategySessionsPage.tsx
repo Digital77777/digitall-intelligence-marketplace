@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Target, Calendar as CalendarIcon, Clock, Video, CheckCircle2, Crown, User, Loader2, X, FileText } from 'lucide-react';
+import { Target, Calendar as CalendarIcon, Clock, Video, CheckCircle2, Crown, User, Loader2, X, FileText, RefreshCw } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
@@ -39,6 +39,13 @@ export default function StrategySessionsPage() {
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [selectedTopic, setSelectedTopic] = useState<string>('');
   const [sessionNotes, setSessionNotes] = useState('');
+
+  // Reschedule dialog state
+  const [rescheduleDialogOpen, setRescheduleDialogOpen] = useState(false);
+  const [rescheduleSession, setRescheduleSession] = useState<StrategySession | null>(null);
+  const [rescheduleDate, setRescheduleDate] = useState<Date | undefined>(undefined);
+  const [rescheduleSlot, setRescheduleSlot] = useState<string>('');
+  const [rescheduling, setRescheduling] = useState(false);
 
   const availableSlots = [
     '09:00 AM', '10:00 AM', '11:00 AM',
@@ -109,7 +116,6 @@ export default function StrategySessionsPage() {
       return;
     }
 
-    // Check if date is in the past
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     if (selectedDate < today) {
@@ -151,7 +157,6 @@ export default function StrategySessionsPage() {
 
       if (error) throw error;
 
-      // Send email notifications
       try {
         await supabase.functions.invoke('send-session-notification', {
           body: {
@@ -163,7 +168,6 @@ export default function StrategySessionsPage() {
             topic: selectedTopic || 'General Strategy Consultation',
           },
         });
-        console.log('Session notification emails sent');
       } catch (emailError) {
         console.error('Failed to send notification emails:', emailError);
       }
@@ -184,6 +188,52 @@ export default function StrategySessionsPage() {
       });
     } finally {
       setBooking(false);
+    }
+  };
+
+  const openRescheduleDialog = (session: StrategySession) => {
+    setRescheduleSession(session);
+    setRescheduleDate(new Date(session.session_date));
+    setRescheduleSlot(session.session_time);
+    setRescheduleDialogOpen(true);
+  };
+
+  const handleConfirmReschedule = async () => {
+    if (!user || !rescheduleSession || !rescheduleDate || !rescheduleSlot) return;
+
+    setRescheduling(true);
+    
+    try {
+      const formattedDate = format(rescheduleDate, 'yyyy-MM-dd');
+      const displayDate = format(rescheduleDate, 'MMMM d, yyyy');
+      
+      const { error } = await supabase
+        .from('strategy_sessions')
+        .update({
+          session_date: formattedDate,
+          session_time: rescheduleSlot,
+        })
+        .eq('id', rescheduleSession.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Session Rescheduled!",
+        description: `Your session has been moved to ${displayDate} at ${rescheduleSlot}`,
+      });
+
+      setRescheduleDialogOpen(false);
+      setRescheduleSession(null);
+      fetchSessions();
+    } catch (error) {
+      console.error('Error rescheduling session:', error);
+      toast({
+        title: "Reschedule failed",
+        description: "Failed to reschedule your session. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setRescheduling(false);
     }
   };
 
@@ -333,7 +383,7 @@ export default function StrategySessionsPage() {
           ) : sessions.length > 0 ? (
             <div className="space-y-4">
               {sessions.map((session) => (
-                <div key={session.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div key={session.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg gap-4">
                   <div className="flex items-start gap-4">
                     <div className="p-3 bg-primary/10 rounded-lg">
                       <CalendarIcon className="h-6 w-6 text-primary" />
@@ -365,7 +415,15 @@ export default function StrategySessionsPage() {
                       )}
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 sm:flex-shrink-0">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => openRescheduleDialog(session)}
+                    >
+                      <RefreshCw className="h-4 w-4 mr-1" />
+                      Reschedule
+                    </Button>
                     <Button 
                       variant="outline" 
                       size="sm"
@@ -449,6 +507,80 @@ export default function StrategySessionsPage() {
                 </>
               ) : (
                 'Confirm Booking'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reschedule Dialog */}
+      <Dialog open={rescheduleDialogOpen} onOpenChange={setRescheduleDialogOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Reschedule Session</DialogTitle>
+            <DialogDescription>
+              {rescheduleSession && (
+                <>Select a new date and time for your session with {rescheduleSession.consultant}</>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>New Date</Label>
+                <Calendar
+                  mode="single"
+                  selected={rescheduleDate}
+                  onSelect={setRescheduleDate}
+                  className="rounded-md border"
+                  disabled={(date) => date < new Date()}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label>New Time Slot</Label>
+                <div className="grid grid-cols-1 gap-2">
+                  {availableSlots.map((slot) => (
+                    <Button
+                      key={slot}
+                      variant={rescheduleSlot === slot ? "default" : "outline"}
+                      onClick={() => setRescheduleSlot(slot)}
+                      className="w-full justify-start"
+                      size="sm"
+                    >
+                      <Clock className="h-4 w-4 mr-2" />
+                      {slot}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {rescheduleDate && rescheduleSlot && (
+              <div className="p-3 bg-muted rounded-lg">
+                <p className="text-sm">
+                  <strong>New Schedule:</strong> {format(rescheduleDate, 'MMMM d, yyyy')} at {rescheduleSlot}
+                </p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRescheduleDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleConfirmReschedule} 
+              disabled={rescheduling || !rescheduleDate || !rescheduleSlot}
+            >
+              {rescheduling ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Rescheduling...
+                </>
+              ) : (
+                'Confirm Reschedule'
               )}
             </Button>
           </DialogFooter>
