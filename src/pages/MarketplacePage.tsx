@@ -284,6 +284,34 @@ const MarketplacePage = () => {
           </div>
         </section>
 
+        {/* Quick Actions */}
+        <section className="py-12">
+          <div className="container mx-auto px-6">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold mb-2">Quick Actions</h2>
+              <p className="text-muted-foreground">Jump straight to what you need</p>
+            </div>
+            <div className="flex flex-wrap justify-center gap-4">
+              <Button variant="outline" size="lg" onClick={() => navigate('/marketplace/browse')}>
+                <Store className="h-5 w-5 mr-2" />
+                Browse Products
+              </Button>
+              <Button variant="outline" size="lg" onClick={() => navigate('/marketplace/browse-freelancers')}>
+                <Users className="h-5 w-5 mr-2" />
+                Find Freelancers
+              </Button>
+              <Button variant="outline" size="lg" onClick={() => navigate('/marketplace/jobs')}>
+                <Briefcase className="h-5 w-5 mr-2" />
+                Browse Jobs
+              </Button>
+              <Button variant="outline" size="lg" onClick={() => navigate('/client-dashboard')}>
+                <Clock className="h-5 w-5 mr-2" />
+                Client Dashboard
+              </Button>
+            </div>
+          </div>
+        </section>
+
         {/* How It Works */}
         <section className="py-16">
           <div className="container mx-auto px-6">
