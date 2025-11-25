@@ -6,7 +6,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Target, Calendar as CalendarIcon, Clock, Video, CheckCircle2, Crown, User, Loader2, X, FileText, RefreshCw } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Target, Calendar as CalendarIcon, Clock, Video, CheckCircle2, Crown, User, Loader2, X, FileText, RefreshCw, History } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
@@ -30,7 +31,8 @@ export default function StrategySessionsPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [sessions, setSessions] = useState<StrategySession[]>([]);
+  const [upcomingSessions, setUpcomingSessions] = useState<StrategySession[]>([]);
+  const [pastSessions, setPastSessions] = useState<StrategySession[]>([]);
   const [loading, setLoading] = useState(true);
   const [booking, setBooking] = useState(false);
   
@@ -79,16 +81,30 @@ export default function StrategySessionsPage() {
   const fetchSessions = async () => {
     if (!user) return;
     
+    const today = new Date().toISOString().split('T')[0];
+    
     try {
-      const { data, error } = await supabase
+      // Fetch upcoming sessions
+      const { data: upcoming, error: upcomingError } = await supabase
         .from('strategy_sessions')
         .select('*')
         .eq('user_id', user.id)
-        .gte('session_date', new Date().toISOString().split('T')[0])
+        .gte('session_date', today)
         .order('session_date', { ascending: true });
 
-      if (error) throw error;
-      setSessions(data || []);
+      if (upcomingError) throw upcomingError;
+      setUpcomingSessions(upcoming || []);
+
+      // Fetch past sessions
+      const { data: past, error: pastError } = await supabase
+        .from('strategy_sessions')
+        .select('*')
+        .eq('user_id', user.id)
+        .lt('session_date', today)
+        .order('session_date', { ascending: false });
+
+      if (pastError) throw pastError;
+      setPastSessions(past || []);
     } catch (error) {
       console.error('Error fetching sessions:', error);
       toast({
@@ -266,6 +282,67 @@ export default function StrategySessionsPage() {
     return null;
   }
 
+  const SessionCard = ({ session, isPast = false }: { session: StrategySession; isPast?: boolean }) => (
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg gap-4">
+      <div className="flex items-start gap-4">
+        <div className={`p-3 rounded-lg ${isPast ? 'bg-muted' : 'bg-primary/10'}`}>
+          <CalendarIcon className={`h-6 w-6 ${isPast ? 'text-muted-foreground' : 'text-primary'}`} />
+        </div>
+        <div>
+          <h3 className="font-semibold">{session.topic || 'Strategy Consultation'}</h3>
+          <div className="flex flex-wrap gap-3 mt-2 text-sm text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <CalendarIcon className="h-3 w-3" />
+              {new Date(session.session_date).toLocaleDateString()}
+            </span>
+            <span className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              {session.session_time}
+            </span>
+            {session.consultant && (
+              <span className="flex items-center gap-1">
+                <User className="h-3 w-3" />
+                {session.consultant}
+              </span>
+            )}
+            <Badge variant={isPast ? "secondary" : "outline"}>
+              {isPast ? 'Completed' : 'Video Call'}
+            </Badge>
+          </div>
+          {session.notes && (
+            <p className="mt-2 text-sm text-muted-foreground flex items-start gap-1">
+              <FileText className="h-3 w-3 mt-0.5 flex-shrink-0" />
+              <span className="line-clamp-2">{session.notes}</span>
+            </p>
+          )}
+        </div>
+      </div>
+      {!isPast && (
+        <div className="flex gap-2 sm:flex-shrink-0">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => openRescheduleDialog(session)}
+          >
+            <RefreshCw className="h-4 w-4 mr-1" />
+            Reschedule
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => handleCancelSession(session.id)}
+          >
+            <X className="h-4 w-4 mr-1" />
+            Cancel
+          </Button>
+          <Button variant="default" size="sm">
+            Join Call
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="container mx-auto py-8 px-4 max-w-7xl">
       <div className="flex items-center gap-3 mb-8">
@@ -372,79 +449,60 @@ export default function StrategySessionsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Upcoming Sessions</CardTitle>
-          <CardDescription>Your scheduled strategy consultations</CardDescription>
+          <CardTitle>Your Sessions</CardTitle>
+          <CardDescription>Manage your strategy consultations</CardDescription>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : sessions.length > 0 ? (
-            <div className="space-y-4">
-              {sessions.map((session) => (
-                <div key={session.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg gap-4">
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 bg-primary/10 rounded-lg">
-                      <CalendarIcon className="h-6 w-6 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold">{session.topic || 'Strategy Consultation'}</h3>
-                      <div className="flex flex-wrap gap-3 mt-2 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <CalendarIcon className="h-3 w-3" />
-                          {new Date(session.session_date).toLocaleDateString()}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {session.session_time}
-                        </span>
-                        {session.consultant && (
-                          <span className="flex items-center gap-1">
-                            <User className="h-3 w-3" />
-                            {session.consultant}
-                          </span>
-                        )}
-                        <Badge variant="outline">Video Call</Badge>
-                      </div>
-                      {session.notes && (
-                        <p className="mt-2 text-sm text-muted-foreground flex items-start gap-1">
-                          <FileText className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                          <span className="line-clamp-2">{session.notes}</span>
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex gap-2 sm:flex-shrink-0">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => openRescheduleDialog(session)}
-                    >
-                      <RefreshCw className="h-4 w-4 mr-1" />
-                      Reschedule
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleCancelSession(session.id)}
-                    >
-                      <X className="h-4 w-4 mr-1" />
-                      Cancel
-                    </Button>
-                    <Button variant="default" size="sm">
-                      Join Call
-                    </Button>
-                  </div>
+          <Tabs defaultValue="upcoming" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-4">
+              <TabsTrigger value="upcoming" className="flex items-center gap-2">
+                <CalendarIcon className="h-4 w-4" />
+                Upcoming ({upcomingSessions.length})
+              </TabsTrigger>
+              <TabsTrigger value="history" className="flex items-center gap-2">
+                <History className="h-4 w-4" />
+                History ({pastSessions.length})
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="upcoming">
+              {loading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              <CalendarIcon className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p>No upcoming sessions. Book your first consultation above!</p>
-            </div>
-          )}
+              ) : upcomingSessions.length > 0 ? (
+                <div className="space-y-4">
+                  {upcomingSessions.map((session) => (
+                    <SessionCard key={session.id} session={session} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <CalendarIcon className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                  <p>No upcoming sessions. Book your first consultation above!</p>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="history">
+              {loading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : pastSessions.length > 0 ? (
+                <div className="space-y-4">
+                  {pastSessions.map((session) => (
+                    <SessionCard key={session.id} session={session} isPast />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <History className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                  <p>No past sessions yet. Your completed sessions will appear here.</p>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
 
