@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, FileText, DollarSign } from "lucide-react";
+import { X, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { z } from "zod";
 import { quoteRequestSchema } from "@/lib/validationSchemas";
+import { supabase } from "@/integrations/supabase/client";
 
 interface QuoteRequestModalProps {
   isOpen: boolean;
@@ -59,17 +60,42 @@ export const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({
     budget: "",
     requirements: ""
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (field: keyof QuoteFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
       // Validate with Zod schema
-      const validated = quoteRequestSchema.parse(formData);
+      quoteRequestSchema.parse(formData);
+      
+      setIsSubmitting(true);
+
+      // Get current user if logged in
+      const { data: { user } } = await supabase.auth.getUser();
+
+      // Insert quote request into database
+      const { error } = await supabase
+        .from('quote_requests')
+        .insert({
+          user_id: user?.id || null,
+          name: formData.name,
+          email: formData.email,
+          company: formData.company || null,
+          phone: formData.phone || null,
+          service_title: serviceTitle,
+          project_description: formData.projectDescription,
+          timeline: formData.timeline || null,
+          budget: formData.budget || null,
+          requirements: formData.requirements || null,
+          status: 'pending'
+        });
+
+      if (error) throw error;
       
       toast.success("Quote request submitted successfully! Our team will contact you within 24 hours with a detailed proposal.");
       
@@ -90,8 +116,11 @@ export const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({
       if (err instanceof z.ZodError) {
         toast.error(err.errors[0].message);
       } else {
-        toast.error("An unexpected error occurred");
+        console.error('Quote request error:', err);
+        toast.error("Failed to submit quote request. Please try again.");
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -223,11 +252,11 @@ export const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 pt-6">
-              <Button type="submit" size="lg" className="flex-1">
+              <Button type="submit" size="lg" className="flex-1" disabled={isSubmitting}>
                 <FileText className="h-4 w-4 mr-2" />
-                Submit Quote Request
+                {isSubmitting ? "Submitting..." : "Submit Quote Request"}
               </Button>
-              <Button type="button" variant="outline" size="lg" onClick={onClose}>
+              <Button type="button" variant="outline" size="lg" onClick={onClose} disabled={isSubmitting}>
                 Cancel
               </Button>
             </div>
