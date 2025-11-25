@@ -3,6 +3,8 @@ import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface MessageContentProps {
   content: string;
@@ -51,39 +53,104 @@ export const MessageContent = ({ content, isUser }: MessageContentProps) => {
     return <div className="whitespace-pre-wrap text-sm">{content}</div>;
   }
 
-  // Parse content for code blocks
-  const parts: React.ReactNode[] = [];
-  const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
-  let lastIndex = 0;
-  let match;
+  // Render markdown with custom components
+  return (
+    <div className="text-sm prose prose-sm dark:prose-invert max-w-none">
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={{
+          code(props) {
+            const { node, className, children, ...rest } = props;
+            const match = /language-(\w+)/.exec(className || '');
+            const language = match ? match[1] : '';
+            const codeString = String(children).replace(/\n$/, '');
+            const isInline = !className;
 
-  while ((match = codeBlockRegex.exec(content)) !== null) {
-    // Add text before code block
-    if (match.index > lastIndex) {
-      const textBefore = content.slice(lastIndex, match.index);
-      parts.push(
-        <span key={`text-${lastIndex}`} className="whitespace-pre-wrap">
-          {textBefore}
-        </span>
-      );
-    }
+            if (!isInline && language) {
+              return <CodeBlock code={codeString} language={language} />;
+            }
 
-    // Add code block
-    const language = match[1] || 'text';
-    const code = match[2].trim();
-    parts.push(<CodeBlock key={`code-${match.index}`} code={code} language={language} />);
-
-    lastIndex = match.index + match[0].length;
-  }
-
-  // Add remaining text after last code block
-  if (lastIndex < content.length) {
-    parts.push(
-      <span key={`text-${lastIndex}`} className="whitespace-pre-wrap">
-        {content.slice(lastIndex)}
-      </span>
-    );
-  }
-
-  return <div className="text-sm">{parts.length > 0 ? parts : content}</div>;
+            return (
+              <code
+                className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono"
+                {...rest}
+              >
+                {children}
+              </code>
+            );
+          },
+          pre({ children }) {
+            return <>{children}</>;
+          },
+          a({ href, children }) {
+            return (
+              <a
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline font-medium"
+              >
+                {children}
+              </a>
+            );
+          },
+          ul({ children }) {
+            return <ul className="list-disc list-inside space-y-1 my-2">{children}</ul>;
+          },
+          ol({ children }) {
+            return <ol className="list-decimal list-inside space-y-1 my-2">{children}</ol>;
+          },
+          li({ children }) {
+            return <li className="text-sm">{children}</li>;
+          },
+          p({ children }) {
+            return <p className="my-2 leading-relaxed">{children}</p>;
+          },
+          h1({ children }) {
+            return <h1 className="text-xl font-bold mt-4 mb-2">{children}</h1>;
+          },
+          h2({ children }) {
+            return <h2 className="text-lg font-bold mt-3 mb-2">{children}</h2>;
+          },
+          h3({ children }) {
+            return <h3 className="text-base font-semibold mt-2 mb-1">{children}</h3>;
+          },
+          blockquote({ children }) {
+            return (
+              <blockquote className="border-l-4 border-primary pl-4 italic my-2">
+                {children}
+              </blockquote>
+            );
+          },
+          table({ children }) {
+            return (
+              <div className="overflow-x-auto my-2">
+                <table className="min-w-full border-collapse border border-border">
+                  {children}
+                </table>
+              </div>
+            );
+          },
+          th({ children }) {
+            return (
+              <th className="border border-border bg-muted px-3 py-2 text-left font-semibold">
+                {children}
+              </th>
+            );
+          },
+          td({ children }) {
+            return <td className="border border-border px-3 py-2">{children}</td>;
+          },
+          strong({ children }) {
+            return <strong className="font-bold">{children}</strong>;
+          },
+          em({ children }) {
+            return <em className="italic">{children}</em>;
+          },
+        }}
+      >
+        {content}
+      </ReactMarkdown>
+    </div>
+  );
 };
