@@ -1131,6 +1131,48 @@ export type Database = {
           },
         ]
       }
+      strategy_sessions: {
+        Row: {
+          consultant: string | null
+          created_at: string
+          id: string
+          meeting_link: string | null
+          notes: string | null
+          session_date: string
+          session_time: string
+          status: string
+          topic: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          consultant?: string | null
+          created_at?: string
+          id?: string
+          meeting_link?: string | null
+          notes?: string | null
+          session_date: string
+          session_time: string
+          status?: string
+          topic?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          consultant?: string | null
+          created_at?: string
+          id?: string
+          meeting_link?: string | null
+          notes?: string | null
+          session_date?: string
+          session_time?: string
+          status?: string
+          topic?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       subscription_tiers: {
         Row: {
           created_at: string

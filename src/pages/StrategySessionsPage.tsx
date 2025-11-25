@@ -2,34 +2,43 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
-import { Target, Calendar as CalendarIcon, Clock, Video, CheckCircle2, Crown, User } from 'lucide-react';
-import { useState } from 'react';
+import { Target, Calendar as CalendarIcon, Clock, Video, CheckCircle2, Crown, User, Loader2, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
+import { format } from 'date-fns';
+
+interface StrategySession {
+  id: string;
+  session_date: string;
+  session_time: string;
+  topic: string | null;
+  consultant: string | null;
+  meeting_link: string | null;
+  status: string;
+}
 
 export default function StrategySessionsPage() {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [sessions, setSessions] = useState<StrategySession[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [booking, setBooking] = useState(false);
 
   const availableSlots = [
     '09:00 AM', '10:00 AM', '11:00 AM',
     '02:00 PM', '03:00 PM', '04:00 PM'
   ];
 
-  const upcomingSessions = [
-    {
-      date: '2025-10-15',
-      time: '10:00 AM',
-      consultant: 'Dr. Michael Chen',
-      topic: 'Revenue Optimization Strategy',
-      type: 'Video Call'
-    },
-    {
-      date: '2025-11-12',
-      time: '02:00 PM',
-      consultant: 'Emma Rodriguez',
-      topic: 'Marketplace Growth Plan',
-      type: 'Video Call'
-    }
+  const consultants = [
+    'Dr. Michael Chen',
+    'Emma Rodriguez',
+    'James Thompson',
+    'Sarah Williams'
   ];
 
   const sessionTopics = [
@@ -41,12 +50,130 @@ export default function StrategySessionsPage() {
     'Career advancement and networking'
   ];
 
-  const handleBookSession = (slot: string) => {
-    toast({
-      title: "Session Booked",
-      description: `Your strategy session is scheduled for ${selectedDate?.toLocaleDateString()} at ${slot}`,
-    });
+  useEffect(() => {
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+    fetchSessions();
+  }, [user, navigate]);
+
+  const fetchSessions = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('strategy_sessions')
+        .select('*')
+        .eq('user_id', user.id)
+        .gte('session_date', new Date().toISOString().split('T')[0])
+        .order('session_date', { ascending: true });
+
+      if (error) throw error;
+      setSessions(data || []);
+    } catch (error) {
+      console.error('Error fetching sessions:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load your sessions",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleBookSession = async (slot: string) => {
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+
+    if (!selectedDate) {
+      toast({
+        title: "Select a date",
+        description: "Please select a date for your session",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if date is in the past
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (selectedDate < today) {
+      toast({
+        title: "Invalid date",
+        description: "Please select a future date",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setBooking(true);
+    
+    try {
+      // Assign a random consultant
+      const consultant = consultants[Math.floor(Math.random() * consultants.length)];
+      
+      const { error } = await supabase
+        .from('strategy_sessions')
+        .insert({
+          user_id: user.id,
+          session_date: format(selectedDate, 'yyyy-MM-dd'),
+          session_time: slot,
+          consultant,
+          status: 'scheduled',
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Session Booked!",
+        description: `Your strategy session is scheduled for ${format(selectedDate, 'MMMM d, yyyy')} at ${slot} with ${consultant}`,
+      });
+
+      fetchSessions();
+    } catch (error) {
+      console.error('Error booking session:', error);
+      toast({
+        title: "Booking failed",
+        description: "Failed to book your session. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setBooking(false);
+    }
+  };
+
+  const handleCancelSession = async (sessionId: string) => {
+    try {
+      const { error } = await supabase
+        .from('strategy_sessions')
+        .delete()
+        .eq('id', sessionId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Session cancelled",
+        description: "Your session has been cancelled",
+      });
+
+      fetchSessions();
+    } catch (error) {
+      console.error('Error cancelling session:', error);
+      toast({
+        title: "Error",
+        description: "Failed to cancel session",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-7xl">
@@ -74,6 +201,7 @@ export default function StrategySessionsPage() {
                   selected={selectedDate}
                   onSelect={setSelectedDate}
                   className="rounded-md border"
+                  disabled={(date) => date < new Date()}
                 />
               </div>
 
@@ -86,8 +214,13 @@ export default function StrategySessionsPage() {
                       variant="outline"
                       onClick={() => handleBookSession(slot)}
                       className="w-full"
+                      disabled={booking}
                     >
-                      <Clock className="h-4 w-4 mr-2" />
+                      {booking ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Clock className="h-4 w-4 mr-2" />
+                      )}
                       {slot}
                     </Button>
                   ))}
@@ -157,34 +290,52 @@ export default function StrategySessionsPage() {
           <CardDescription>Your scheduled strategy consultations</CardDescription>
         </CardHeader>
         <CardContent>
-          {upcomingSessions.length > 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : sessions.length > 0 ? (
             <div className="space-y-4">
-              {upcomingSessions.map((session, index) => (
-                <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+              {sessions.map((session) => (
+                <div key={session.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-start gap-4">
                     <div className="p-3 bg-primary/10 rounded-lg">
                       <CalendarIcon className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-semibold">{session.topic}</h3>
+                      <h3 className="font-semibold">{session.topic || 'Strategy Consultation'}</h3>
                       <div className="flex flex-wrap gap-3 mt-2 text-sm text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <CalendarIcon className="h-3 w-3" />
-                          {new Date(session.date).toLocaleDateString()}
+                          {new Date(session.session_date).toLocaleDateString()}
                         </span>
                         <span className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
-                          {session.time}
+                          {session.session_time}
                         </span>
-                        <span className="flex items-center gap-1">
-                          <User className="h-3 w-3" />
-                          {session.consultant}
-                        </span>
-                        <Badge variant="outline">{session.type}</Badge>
+                        {session.consultant && (
+                          <span className="flex items-center gap-1">
+                            <User className="h-3 w-3" />
+                            {session.consultant}
+                          </span>
+                        )}
+                        <Badge variant="outline">Video Call</Badge>
                       </div>
                     </div>
                   </div>
-                  <Button variant="outline">Join Call</Button>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleCancelSession(session.id)}
+                    >
+                      <X className="h-4 w-4 mr-1" />
+                      Cancel
+                    </Button>
+                    <Button variant="default" size="sm">
+                      Join Call
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
