@@ -29,7 +29,9 @@ export const TierProvider = ({ children }: { children: ReactNode }) => {
         'basic_tools', 
         'basic_learning_paths', 
         'community', 
-        'marketplace_buy'  // Can browse and purchase
+        'marketplace_buy',
+        'hire_freelancers',
+        'browse_freelancers'
       ],
       creator: [
         'basic_tools', 
@@ -37,7 +39,9 @@ export const TierProvider = ({ children }: { children: ReactNode }) => {
         'all_learning_paths', 
         'community', 
         'marketplace_buy', 
-        'marketplace_sell',  // Can sell products
+        'marketplace_sell',
+        'hire_freelancers',
+        'browse_freelancers',
         'referrals',
         'creator_badge',
         'priority_support'
@@ -50,7 +54,9 @@ export const TierProvider = ({ children }: { children: ReactNode }) => {
         'career_certification',
         'community', 
         'marketplace_buy', 
-        'marketplace_sell',  // Can sell products
+        'marketplace_sell',
+        'hire_freelancers',
+        'browse_freelancers',
         'unlimited_listings',
         'referrals', 
         'premium_support', 
