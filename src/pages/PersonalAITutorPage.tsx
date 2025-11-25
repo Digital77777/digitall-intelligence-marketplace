@@ -1,29 +1,37 @@
-import { Bot, Brain, Sparkles, MessageSquare, BookOpen, Target, TrendingUp, Zap, Award, Send, Loader2, Trash2, User } from 'lucide-react';
+import { Bot, Brain, Sparkles, MessageSquare, BookOpen, Target, TrendingUp, Zap, Award, Send, Loader2, Trash2, User, Plus, History, Clock } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useState, useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageContent } from '@/components/chat/MessageContent';
+import { useAITutorSessions } from '@/hooks/useAITutorSessions';
+import { formatDistanceToNow } from 'date-fns';
 
-interface Message {
-  role: 'user' | 'assistant';
-  content: string;
-}
-
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-tutor`;
+const CHAT_URL = 'https://uegujjkjkoohucpbdjwj.supabase.co/functions/v1/ai-tutor';
 
 const PersonalAITutorPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [input, setInput] = useState('');
-  const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const {
+    sessions,
+    currentSessionId,
+    messages,
+    setMessages,
+    loadSession,
+    createSession,
+    saveMessage,
+    deleteSession,
+    startNewConversation
+  } = useAITutorSessions(user?.id);
 
   useEffect(() => {
     if (!user) {
@@ -47,10 +55,25 @@ const PersonalAITutorPage = () => {
   ];
 
   const streamChat = async (userMessage: string) => {
-    const userMsg: Message = { role: 'user', content: userMessage };
+    const userMsg = { role: 'user' as const, content: userMessage };
     setMessages(prev => [...prev, userMsg]);
     setIsLoading(true);
     setInput('');
+
+    let sessionId = currentSessionId;
+    
+    // Create new session if none exists
+    if (!sessionId) {
+      sessionId = await createSession(userMessage);
+      if (!sessionId) {
+        toast.error('Failed to create conversation');
+        setIsLoading(false);
+        return;
+      }
+    }
+
+    // Save user message
+    await saveMessage(sessionId, userMsg);
 
     let assistantContent = '';
 
@@ -59,7 +82,7 @@ const PersonalAITutorPage = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlZ3Vqamtqa29vaHVjcGJkandqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0MzkxNzIsImV4cCI6MjA2ODAxNTE3Mn0.tIR1Pldwu-Ncp0W43vIwsjf3RvrDF3PNKOJ4r0x5Nf8`,
         },
         body: JSON.stringify({ messages: [...messages, userMsg] }),
       });
@@ -149,6 +172,11 @@ const PersonalAITutorPage = () => {
           } catch { /* ignore */ }
         }
       }
+
+      // Save assistant message
+      if (assistantContent) {
+        await saveMessage(sessionId, { role: 'assistant', content: assistantContent });
+      }
     } catch (error) {
       console.error('Chat error:', error);
       toast.error('Failed to send message. Please try again.');
@@ -169,9 +197,9 @@ const PersonalAITutorPage = () => {
     }
   };
 
-  const clearChat = () => {
-    setMessages([]);
-    toast.success('Conversation cleared');
+  const handleNewChat = () => {
+    startNewConversation();
+    toast.success('Started new conversation');
   };
 
   const tutorFeatures = [
@@ -225,12 +253,10 @@ const PersonalAITutorPage = () => {
                   </CardTitle>
                   <CardDescription>Ask anything about AI, programming, or career guidance</CardDescription>
                 </div>
-                {messages.length > 0 && (
-                  <Button variant="ghost" size="sm" onClick={clearChat}>
-                    <Trash2 className="h-4 w-4 mr-1" />
-                    Clear
-                  </Button>
-                )}
+                <Button variant="outline" size="sm" onClick={handleNewChat}>
+                  <Plus className="h-4 w-4 mr-1" />
+                  New Chat
+                </Button>
               </CardHeader>
               
               <CardContent className="flex-1 flex flex-col overflow-hidden p-0">
@@ -331,6 +357,57 @@ const PersonalAITutorPage = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
+            {/* Chat History */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <History className="h-4 w-4 text-primary" />
+                  Chat History
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {sessions.length === 0 ? (
+                  <p className="text-xs text-muted-foreground text-center py-4">
+                    No previous conversations
+                  </p>
+                ) : (
+                  <ScrollArea className="h-[200px]">
+                    <div className="space-y-2 pr-2">
+                      {sessions.slice(0, 10).map((session) => (
+                        <div
+                          key={session.id}
+                          className={`group flex items-start gap-2 p-2 rounded-md cursor-pointer hover:bg-muted transition-colors ${
+                            currentSessionId === session.id ? 'bg-muted' : ''
+                          }`}
+                          onClick={() => loadSession(session.id)}
+                        >
+                          <MessageSquare className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium truncate">{session.title}</p>
+                            <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {formatDistanceToNow(new Date(session.updated_at), { addSuffix: true })}
+                            </p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteSession(session.id);
+                            }}
+                          >
+                            <Trash2 className="h-3 w-3 text-destructive" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                )}
+              </CardContent>
+            </Card>
+
             {/* Quick Prompts */}
             <Card>
               <CardHeader className="pb-3">
@@ -380,8 +457,8 @@ const PersonalAITutorPage = () => {
             <Card className="bg-gradient-to-br from-primary/10 to-accent/10">
               <CardContent className="pt-6 text-center">
                 <Bot className="h-10 w-10 mx-auto mb-3 text-primary" />
-                <div className="text-2xl font-bold mb-1">{messages.filter(m => m.role === 'user').length}</div>
-                <div className="text-sm text-muted-foreground">Questions Asked</div>
+                <div className="text-2xl font-bold mb-1">{sessions.length}</div>
+                <div className="text-sm text-muted-foreground">Conversations</div>
               </CardContent>
             </Card>
           </div>
