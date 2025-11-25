@@ -3,3 +3,12 @@ project_id = "uegujjkjkoohucpbdjwj"
 [auth]
 enable_signup = true
 enable_confirmations = false
+
+[functions.hugging-face-proxy]
+verify_jwt = true
+
+[functions.imagga-proxy]
+verify_jwt = true
+
+[functions.send-job-application-notification]
+verify_jwt = false

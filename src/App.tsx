@@ -49,6 +49,7 @@ const SellerDashboardPage = lazy(() => import("./pages/SellerDashboardPage"));
 const ClientDashboardPage = lazy(() => import("./pages/ClientDashboardPage"));
 const PostJobsPage = lazy(() => import("./pages/PostJobsPage"));
 const CreateJobPostingPage = lazy(() => import("./pages/CreateJobPostingPage"));
+const JobListingsPage = lazy(() => import("./pages/JobListingsPage"));
 
 // Community - Lazy loaded
 const MyActivityPage = lazy(() => import("./pages/MyActivityPage"));
@@ -148,6 +149,7 @@ const routeGroups: AppRoute[] = [
   { path: "/client-dashboard", component: ClientDashboardPage, protected: true },
   { path: "/marketplace/post-jobs", component: PostJobsPage, protected: true },
   { path: "/create-job-posting", component: CreateJobPostingPage, protected: true },
+  { path: "/marketplace/jobs", component: JobListingsPage, protected: true },
 
   // Community
   { path: "/community", component: CommunityPage, protected: true },
