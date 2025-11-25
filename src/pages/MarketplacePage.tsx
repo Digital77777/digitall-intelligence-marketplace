@@ -123,6 +123,12 @@ const MarketplacePage = () => {
                     Start Selling
                   </Button>
                 </Link>
+                <Link to="/marketplace/browse-freelancers">
+                  <Button size="lg" variant="outline">
+                    <Users className="h-5 w-5 mr-2" />
+                    Browse Freelancers
+                  </Button>
+                </Link>
                 <Link to="/marketplace/browse">
                   <Button size="lg" variant="outline">
                     Browse Marketplace
