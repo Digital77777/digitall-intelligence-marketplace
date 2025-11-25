@@ -6,14 +6,22 @@ import { Badge } from "@/components/ui/badge";
 import { useTier } from "@/contexts/TierContext";
 import { AIDevWizard } from "@/components/ai-development/AIDevWizard";
 import { AIProjectsDashboard } from "@/components/ai-development/AIProjectsDashboard";
+import { QuoteRequestModal } from "@/components/QuoteRequestModal";
 import Navigation from "@/components/Navigation";
 import MobileFooter from "@/components/MobileFooter";
 import { SEOHead } from "@/components/SEOHead";
 
 const AIDevelopmentPage = () => {
   const [wizardOpen, setWizardOpen] = useState(false);
+  const [quoteModalOpen, setQuoteModalOpen] = useState(false);
+  const [selectedService, setSelectedService] = useState("");
   const { tierName } = useTier();
   const canAccess = tierName === 'creator' || tierName === 'career';
+
+  const handleGetQuote = (serviceTitle: string) => {
+    setSelectedService(serviceTitle);
+    setQuoteModalOpen(true);
+  };
   const developmentServices = [
     {
       title: "Custom AI Models",
@@ -172,6 +180,11 @@ const AIDevelopmentPage = () => {
       />
       <Navigation />
       <AIDevWizard open={wizardOpen} onOpenChange={setWizardOpen} />
+      <QuoteRequestModal 
+        isOpen={quoteModalOpen} 
+        onClose={() => setQuoteModalOpen(false)} 
+        serviceTitle={selectedService}
+      />
       
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/5 pt-20 pb-16">
@@ -260,7 +273,7 @@ const AIDevelopmentPage = () => {
                       ))}
                     </div>
                   </div>
-                  <Button className="w-full">
+                  <Button className="w-full" onClick={() => handleGetQuote(service.title)}>
                     Get Quote
                   </Button>
                 </CardContent>
