@@ -38,6 +38,7 @@ const ConversationalAI = lazy(() => import("./pages/tools/ConversationalAI"));
 // Marketplace - Lazy loaded
 const BrowseMarketplacePage = lazy(() => import("./pages/BrowseMarketplacePage"));
 const SellProductsPage = lazy(() => import("./pages/SellProductsPage"));
+const FreelanceServicesPage = lazy(() => import("./pages/FreelanceServicesPage"));
 const MyListingsPage = lazy(() => import("./pages/MyListingsPage"));
 const CreateListingPage = lazy(() => import("./pages/CreateListingPage"));
 const ScheduleConsultationPage = lazy(() => import("./pages/ScheduleConsultationPage"));
@@ -129,6 +130,7 @@ const routeGroups: AppRoute[] = [
   { path: "/marketplace", component: MarketplacePage, protected: true },
   { path: "/marketplace/browse", component: BrowseMarketplacePage, protected: true },
   { path: "/marketplace/sell-products", component: SellProductsPage, protected: true },
+  { path: "/marketplace/freelance-services", component: FreelanceServicesPage, protected: true },
   { path: "/marketplace/schedule-consultation", component: ScheduleConsultationPage, protected: true },
   { path: "/marketplace/my-listings", component: MyListingsPage, protected: true },
   { path: "/marketplace/create", component: CreateListingPage, protected: true },
