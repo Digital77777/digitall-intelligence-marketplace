@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, User, Camera, Star, DollarSign, Briefcase } from "lucide-react";
+import { ArrowLeft, User, Camera, Star, DollarSign, Briefcase, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -48,6 +48,8 @@ const CreateFreelancerProfilePage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const [formData, setFormData] = useState<FreelancerProfileData>({
     name: "",
@@ -67,6 +69,63 @@ const CreateFreelancerProfilePage = () => {
   const [languageInput, setLanguageInput] = useState("");
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  // Load existing profile data on mount
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('freelancer_profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (error) throw error;
+
+        if (data) {
+          setIsEditMode(true);
+          
+          // Safely parse portfolio items
+          let portfolioItems: Array<{ title: string; description: string; url: string }> = 
+            [{ title: "", description: "", url: "" }];
+          
+          if (data.portfolio_items && Array.isArray(data.portfolio_items)) {
+            portfolioItems = data.portfolio_items as Array<{ title: string; description: string; url: string }>;
+          }
+          
+          setFormData({
+            name: data.name || "",
+            title: data.title || "",
+            bio: data.bio || "",
+            hourlyRate: data.hourly_rate?.toString() || "",
+            experience: data.experience || "",
+            location: data.location || "",
+            skills: data.skills || [],
+            languages: data.languages || ["English"],
+            portfolioItems: portfolioItems,
+            availability: data.availability || "",
+            profilePicture: data.profile_picture || ""
+          });
+          
+          if (data.profile_picture) {
+            setImagePreview(data.profile_picture);
+          }
+        }
+      } catch (error: any) {
+        console.error('Error loading profile:', error);
+        toast.error("Failed to load profile data");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, [user]);
 
   const handleInputChange = (field: keyof FreelancerProfileData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -238,15 +297,26 @@ const CreateFreelancerProfilePage = () => {
 
       if (error) throw error;
 
-      toast.success("Profile created successfully! You're now visible to potential clients.");
+      toast.success(isEditMode ? "Profile updated successfully!" : "Profile created successfully! You're now visible to potential clients.");
       navigate("/seller-dashboard");
     } catch (error: any) {
-      console.error('Error creating profile:', error);
-      toast.error(error.message || "Failed to create profile. Please try again.");
+      console.error('Error saving profile:', error);
+      toast.error(error.message || "Failed to save profile. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+          <p className="text-muted-foreground">Loading profile data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -255,17 +325,22 @@ const CreateFreelancerProfilePage = () => {
           <Button 
             variant="ghost" 
             className="mb-6 group"
-            onClick={() => navigate("/marketplace/freelance-services")}
+            onClick={() => navigate(isEditMode ? "/seller-dashboard" : "/marketplace/freelance-services")}
           >
             <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-            Back to Freelance Services
+            {isEditMode ? "Back to Dashboard" : "Back to Freelance Services"}
           </Button>
 
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold mb-4">Create Your Freelancer Profile</h1>
+              <h1 className="text-3xl font-bold mb-4">
+                {isEditMode ? "Edit Your Freelancer Profile" : "Create Your Freelancer Profile"}
+              </h1>
               <p className="text-muted-foreground">
-                Build a compelling profile to attract clients and showcase your AI expertise.
+                {isEditMode 
+                  ? "Update your profile information to keep it current for potential clients." 
+                  : "Build a compelling profile to attract clients and showcase your AI expertise."
+                }
               </p>
             </div>
 
@@ -553,14 +628,23 @@ const CreateFreelancerProfilePage = () => {
 
               <div className="flex flex-col sm:flex-row gap-4 pt-6">
                 <Button type="submit" size="lg" className="flex-1" disabled={isSubmitting}>
-                  <Star className="h-4 w-4 mr-2" />
-                  {isSubmitting ? "Creating Profile..." : "Create Profile"}
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      {isEditMode ? "Updating..." : "Creating..."}
+                    </>
+                  ) : (
+                    <>
+                      <Star className="h-4 w-4 mr-2" />
+                      {isEditMode ? "Update Profile" : "Create Profile"}
+                    </>
+                  )}
                 </Button>
                 <Button 
                   type="button" 
                   variant="outline" 
                   size="lg" 
-                  onClick={() => navigate("/marketplace/freelance-services")}
+                  onClick={() => navigate(isEditMode ? "/seller-dashboard" : "/marketplace/freelance-services")}
                   disabled={isSubmitting}
                 >
                   Cancel
