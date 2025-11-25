@@ -42,6 +42,7 @@ export const TierProvider = ({ children }: { children: ReactNode }) => {
         'marketplace_sell',
         'hire_freelancers',
         'browse_freelancers',
+        'post_jobs',
         'referrals',
         'creator_badge',
         'priority_support'
@@ -57,6 +58,7 @@ export const TierProvider = ({ children }: { children: ReactNode }) => {
         'marketplace_sell',
         'hire_freelancers',
         'browse_freelancers',
+        'post_jobs',
         'unlimited_listings',
         'referrals', 
         'premium_support', 

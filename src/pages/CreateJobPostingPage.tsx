@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Building, Clock, DollarSign, MapPin, Users, Briefcase, X } from 'lucide-react';
+import { ArrowLeft, Clock, MapPin, Users, Briefcase, X, Crown, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,8 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { useMarketplace } from '@/hooks/useMarketplace';
 import { useAuth } from '@/hooks/useAuth';
+import { useTier } from '@/contexts/TierContext';
 import { toast } from 'sonner';
-
 interface JobFormData {
   title: string;
   description: string;
@@ -46,9 +46,12 @@ const experienceLevels = [
 const CreateJobPostingPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { canAccessFeature, tierName, loading } = useTier();
   const { categories, createListing } = useMarketplace();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [skillInput, setSkillInput] = useState('');
+
+  const canPostJobs = canAccessFeature('post_jobs');
 
   const [formData, setFormData] = useState<JobFormData>({
     title: '',
@@ -96,6 +99,12 @@ const CreateJobPostingPage = () => {
       return;
     }
 
+    if (!canPostJobs) {
+      toast.error('Please upgrade to Creator or Career tier to post jobs');
+      navigate('/subscription');
+      return;
+    }
+
     // Validation
     if (!formData.title || !formData.description || !formData.employment_type) {
       toast.error('Please fill in all required fields');
@@ -133,11 +142,13 @@ const CreateJobPostingPage = () => {
     }
   };
 
+  // Show sign in prompt if not authenticated
   if (!user) {
     return (
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-6 pt-24 pb-12">
-          <div className="text-center">
+          <div className="text-center max-w-md mx-auto">
+            <Lock className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
             <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
             <p className="text-muted-foreground mb-6">
               Please sign in to post a job on the marketplace.
@@ -145,6 +156,45 @@ const CreateJobPostingPage = () => {
             <Button onClick={() => navigate('/auth')}>
               Sign In
             </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show upgrade prompt if not Creator or Career tier
+  if (!loading && !canPostJobs) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-6 pt-24 pb-12">
+          <div className="text-center max-w-2xl mx-auto">
+            <div className="w-20 h-20 bg-gradient-to-br from-primary/20 to-accent/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Crown className="h-10 w-10 text-primary" />
+            </div>
+            <h1 className="text-3xl font-bold mb-4">Upgrade to Post Jobs</h1>
+            <p className="text-lg text-muted-foreground mb-8">
+              Job posting is available for Creator and Career tier members. Upgrade your subscription to connect with talented AI professionals.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                onClick={() => navigate('/subscription')}
+                size="lg"
+                className="bg-gradient-to-r from-primary to-accent hover:opacity-90"
+              >
+                <Crown className="h-5 w-5 mr-2" />
+                Upgrade Now
+              </Button>
+              <Button 
+                variant="outline" 
+                size="lg"
+                onClick={() => navigate('/marketplace')}
+              >
+                Back to Marketplace
+              </Button>
+            </div>
+            <p className="text-sm text-muted-foreground mt-6">
+              Current tier: <span className="font-medium capitalize">{tierName || 'Starter'}</span>
+            </p>
           </div>
         </div>
       </div>
