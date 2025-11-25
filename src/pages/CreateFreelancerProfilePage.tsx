@@ -65,6 +65,8 @@ const CreateFreelancerProfilePage = () => {
 
   const [skillInput, setSkillInput] = useState("");
   const [languageInput, setLanguageInput] = useState("");
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const handleInputChange = (field: keyof FreelancerProfileData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -128,6 +130,67 @@ const CreateFreelancerProfilePage = () => {
         ...prev,
         portfolioItems: prev.portfolioItems.filter((_, i) => i !== index)
       }));
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      toast.error("Please upload a valid image file (JPEG, PNG, or WebP)");
+      return;
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image size must be less than 5MB");
+      return;
+    }
+
+    if (!user) {
+      toast.error("You must be logged in to upload images");
+      return;
+    }
+
+    setUploadingImage(true);
+
+    try {
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+
+      // Upload to Supabase Storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/profile-${Date.now()}.${fileExt}`;
+      
+      const { data, error } = await supabase.storage
+        .from('freelancer-profiles')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) throw error;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('freelancer-profiles')
+        .getPublicUrl(data.path);
+
+      setFormData(prev => ({ ...prev, profilePicture: publicUrl }));
+      toast.success("Profile picture uploaded successfully!");
+    } catch (error: any) {
+      console.error('Error uploading image:', error);
+      toast.error(error.message || "Failed to upload image");
+      setImagePreview(null);
+    } finally {
+      setUploadingImage(false);
     }
   };
 
@@ -216,6 +279,43 @@ const CreateFreelancerProfilePage = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                  {/* Profile Picture Upload */}
+                  <div className="flex flex-col items-center gap-4 pb-6 border-b">
+                    <div className="relative">
+                      <div className="w-32 h-32 rounded-full bg-muted flex items-center justify-center overflow-hidden border-4 border-background shadow-lg">
+                        {imagePreview || formData.profilePicture ? (
+                          <img 
+                            src={imagePreview || formData.profilePicture} 
+                            alt="Profile preview" 
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <User className="w-16 h-16 text-muted-foreground" />
+                        )}
+                      </div>
+                      <label 
+                        htmlFor="profile-picture-upload" 
+                        className="absolute bottom-0 right-0 p-2 bg-primary text-primary-foreground rounded-full cursor-pointer hover:opacity-90 transition-opacity shadow-md"
+                      >
+                        <Camera className="w-5 h-5" />
+                        <input
+                          id="profile-picture-upload"
+                          type="file"
+                          accept="image/jpeg,image/jpg,image/png,image/webp"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                          disabled={uploadingImage}
+                        />
+                      </label>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-medium">Profile Picture</p>
+                      <p className="text-xs text-muted-foreground">
+                        {uploadingImage ? "Uploading..." : "Click camera icon to upload (Max 5MB)"}
+                      </p>
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="name">Full Name *</Label>
