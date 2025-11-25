@@ -1,10 +1,18 @@
-
+import { useState } from "react";
 import { Code, Cpu, Database, Zap, Shield, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useTier } from "@/contexts/TierContext";
+import { AIDevWizard } from "@/components/ai-development/AIDevWizard";
+import Navigation from "@/components/Navigation";
+import MobileFooter from "@/components/MobileFooter";
+import { SEOHead } from "@/components/SEOHead";
 
 const AIDevelopmentPage = () => {
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const { tierName } = useTier();
+  const canAccess = tierName === 'creator' || tierName === 'career';
   const developmentServices = [
     {
       title: "Custom AI Models",
@@ -155,8 +163,14 @@ const AIDevelopmentPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      
+    <div className="min-h-screen bg-background pb-20 md:pb-0">
+      <SEOHead
+        title="AI Development Services - Custom AI Solutions"
+        description="Transform your business with enterprise-grade AI development. From custom models to full-scale AI integration."
+        keywords={["AI development", "machine learning", "custom AI", "AI integration"]}
+      />
+      <Navigation />
+      <AIDevWizard open={wizardOpen} onOpenChange={setWizardOpen} />
       
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/5 pt-20 pb-16">
@@ -175,14 +189,25 @@ const AIDevelopmentPage = () => {
               Transform your business with enterprise-grade AI development. From custom models to full-scale AI integration, we build solutions that drive real results.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Button size="lg" className="bg-gradient-earn text-white hover:opacity-90" onClick={() => window.location.href = '/marketplace/start-project'}>
+              <Button 
+                size="lg" 
+                className="bg-gradient-earn text-white hover:opacity-90" 
+                onClick={() => setWizardOpen(true)}
+              >
                 <Code className="h-5 w-5 mr-2" />
-                Start Your Project
+                Get Started
               </Button>
-              <Button size="lg" variant="outline">
+              <Button size="lg" variant="outline" onClick={() => {
+                document.getElementById('case-studies')?.scrollIntoView({ behavior: 'smooth' });
+              }}>
                 View Case Studies
               </Button>
             </div>
+            {!canAccess && (
+              <p className="text-sm text-muted-foreground mt-4">
+                Available for Creator and Career tier members
+              </p>
+            )}
           </div>
         </div>
       </section>
@@ -323,7 +348,7 @@ const AIDevelopmentPage = () => {
       </section>
 
       {/* Case Studies */}
-      <section className="py-16">
+      <section id="case-studies" className="py-16">
         <div className="container mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">Success Stories</h2>
@@ -385,7 +410,11 @@ const AIDevelopmentPage = () => {
               Let's discuss how custom AI solutions can drive growth and efficiency for your organization.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Button size="lg" className="bg-gradient-earn text-white hover:opacity-90">
+              <Button 
+                size="lg" 
+                className="bg-gradient-earn text-white hover:opacity-90"
+                onClick={() => setWizardOpen(true)}
+              >
                 <Code className="h-5 w-5 mr-2" />
                 Start Your AI Project
               </Button>
@@ -396,6 +425,7 @@ const AIDevelopmentPage = () => {
           </div>
         </div>
       </section>
+      <MobileFooter />
     </div>
   );
 };
