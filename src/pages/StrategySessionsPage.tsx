@@ -115,12 +115,14 @@ export default function StrategySessionsPage() {
     try {
       // Assign a random consultant
       const consultant = consultants[Math.floor(Math.random() * consultants.length)];
+      const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+      const displayDate = format(selectedDate, 'MMMM d, yyyy');
       
       const { error } = await supabase
         .from('strategy_sessions')
         .insert({
           user_id: user.id,
-          session_date: format(selectedDate, 'yyyy-MM-dd'),
+          session_date: formattedDate,
           session_time: slot,
           consultant,
           status: 'scheduled',
@@ -128,9 +130,26 @@ export default function StrategySessionsPage() {
 
       if (error) throw error;
 
+      // Send email notifications
+      try {
+        await supabase.functions.invoke('send-session-notification', {
+          body: {
+            userEmail: user.email,
+            userName: user.user_metadata?.full_name || user.email?.split('@')[0],
+            sessionDate: displayDate,
+            sessionTime: slot,
+            consultant,
+          },
+        });
+        console.log('Session notification emails sent');
+      } catch (emailError) {
+        console.error('Failed to send notification emails:', emailError);
+        // Don't fail the booking if email fails
+      }
+
       toast({
         title: "Session Booked!",
-        description: `Your strategy session is scheduled for ${format(selectedDate, 'MMMM d, yyyy')} at ${slot} with ${consultant}`,
+        description: `Your strategy session is scheduled for ${displayDate} at ${slot} with ${consultant}`,
       });
 
       fetchSessions();
