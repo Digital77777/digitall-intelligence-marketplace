@@ -147,8 +147,9 @@ const FreelanceServicesPage = () => {
                 <Briefcase className="h-5 w-5 mr-2" />
                 Start Freelancing
               </Button>
-              <Button size="lg" variant="outline">
-                View Opportunities
+              <Button size="lg" variant="outline" onClick={() => navigate('/marketplace/browse-freelancers')}>
+                <Users className="h-5 w-5 mr-2" />
+                Browse Freelancers
               </Button>
             </div>
           </div>
