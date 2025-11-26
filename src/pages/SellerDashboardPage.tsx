@@ -214,7 +214,7 @@ const SellerDashboardPage = () => {
               Track your listings and performance
             </p>
           </div>
-          <Button onClick={() => navigate('/create-listing')}>
+          <Button onClick={() => navigate('/marketplace/create')}>
             <Plus className="h-4 w-4 mr-2" />
             New Listing
           </Button>
@@ -389,7 +389,7 @@ const SellerDashboardPage = () => {
                   <div className="text-center py-12">
                     <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <p className="text-muted-foreground mb-4">No listings yet</p>
-                    <Button onClick={() => navigate('/create-listing')}>
+                    <Button onClick={() => navigate('/marketplace/create')}>
                       Create Your First Listing
                     </Button>
                   </div>

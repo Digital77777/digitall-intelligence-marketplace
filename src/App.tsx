@@ -52,6 +52,8 @@ const CreateJobPostingPage = lazy(() => import("./pages/CreateJobPostingPage"));
 const JobListingsPage = lazy(() => import("./pages/JobListingsPage"));
 const AIDevelopmentPage = lazy(() => import("./pages/AIDevelopmentPage"));
 const StartProjectPage = lazy(() => import("./pages/StartProjectPage"));
+const StartSellingPage = lazy(() => import("./pages/StartSellingPage"));
+const CreatorSuitePage = lazy(() => import("./pages/CreatorSuitePage"));
 
 // Community - Lazy loaded
 const MyActivityPage = lazy(() => import("./pages/MyActivityPage"));
@@ -67,10 +69,15 @@ const StartTopicPage = lazy(() => import("./pages/community/StartTopicPage"));
 const CareerCertificationPage = lazy(() => import("./pages/CareerCertificationPage"));
 const JobPlacementPage = lazy(() => import("./pages/JobPlacementPage"));
 const StrategySessionsPage = lazy(() => import("./pages/StrategySessionsPage"));
+const PersonalAITutorPage = lazy(() => import("./pages/PersonalAITutorPage"));
 
 // Misc / Support - Lazy loaded
 const AnalyticsPage = lazy(() => import("./pages/AnalyticsPage"));
 const SupportPage = lazy(() => import("./pages/SupportPage"));
+const NotificationSettingsPage = lazy(() => import("./pages/NotificationSettingsPage"));
+const InstallPWAPage = lazy(() => import("./pages/InstallPWAPage"));
+const PublicProfilePage = lazy(() => import("./pages/PublicProfilePage"));
+const EditListingPage = lazy(() => import("./pages/EditListingPage"));
 
 // Optimized QueryClient with aggressive caching for instant data access
 const queryClient = new QueryClient({
@@ -154,6 +161,8 @@ const routeGroups: AppRoute[] = [
   { path: "/marketplace/jobs", component: JobListingsPage, protected: true },
   { path: "/marketplace/ai-development", component: AIDevelopmentPage, protected: true },
   { path: "/marketplace/start-project", component: StartProjectPage, protected: true },
+  { path: "/start-selling", component: StartSellingPage, protected: true },
+  { path: "/creator-suite", component: CreatorSuitePage, protected: true },
 
   // Community
   { path: "/community", component: CommunityPage, protected: true },
@@ -170,12 +179,17 @@ const routeGroups: AppRoute[] = [
   { path: "/career-certification", component: CareerCertificationPage, protected: true },
   { path: "/job-placement", component: JobPlacementPage, protected: true },
   { path: "/strategy-sessions", component: StrategySessionsPage, protected: true },
+  { path: "/personal-ai-tutor", component: PersonalAITutorPage, protected: true },
 
   // Misc
   { path: "/analytics", component: AnalyticsPage, protected: true },
   { path: "/support", component: SupportPage, protected: true },
   { path: "/subscription", component: SubscriptionPage, protected: true },
   { path: "/referrals", component: ReferralPage, protected: true },
+  { path: "/notification-settings", component: NotificationSettingsPage, protected: true },
+  { path: "/install-pwa", component: InstallPWAPage },
+  { path: "/profile/:userId", component: PublicProfilePage, protected: true },
+  { path: "/edit-listing/:id", component: EditListingPage, protected: true },
 ];
 
 const App = () => {

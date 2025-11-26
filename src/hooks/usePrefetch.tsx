@@ -8,7 +8,13 @@ const routeImports: Record<string, () => Promise<any>> = {
   '/ai-tools': () => import('@/pages/AIToolsPage'),
   '/marketplace': () => import('@/pages/MarketplacePage'),
   '/marketplace/schedule-consultation': () => import('@/pages/ScheduleConsultationPage'),
+  '/marketplace/browse': () => import('@/pages/BrowseMarketplacePage'),
+  '/marketplace/browse-freelancers': () => import('@/pages/BrowseFreelancersPage'),
+  '/marketplace/create': () => import('@/pages/CreateListingPage'),
+  '/marketplace/my-listings': () => import('@/pages/MyListingsPage'),
+  '/marketplace/jobs': () => import('@/pages/JobListingsPage'),
   '/community': () => import('@/pages/CommunityPage'),
+  '/community/my-activity': () => import('@/pages/MyActivityPage'),
   '/referrals': () => import('@/pages/ReferralPage'),
   '/subscription': () => import('@/pages/SubscriptionPage'),
   '/analytics': () => import('@/pages/AnalyticsPage'),
@@ -16,6 +22,10 @@ const routeImports: Record<string, () => Promise<any>> = {
   '/career-certification': () => import('@/pages/CareerCertificationPage'),
   '/job-placement': () => import('@/pages/JobPlacementPage'),
   '/strategy-sessions': () => import('@/pages/StrategySessionsPage'),
+  '/personal-ai-tutor': () => import('@/pages/PersonalAITutorPage'),
+  '/notification-settings': () => import('@/pages/NotificationSettingsPage'),
+  '/seller-dashboard': () => import('@/pages/SellerDashboardPage'),
+  '/client-dashboard': () => import('@/pages/ClientDashboardPage'),
 };
 
 // Cache to track which routes have been prefetched
