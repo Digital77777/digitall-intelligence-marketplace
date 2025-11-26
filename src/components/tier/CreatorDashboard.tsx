@@ -68,7 +68,7 @@ export const CreatorDashboard = () => {
             title="Referral Program"
             description="Earn recurring income by referring others"
             buttonText="Get Link"
-            onClick={() => navigate('/referral')}
+            onClick={() => navigate('/referrals')}
             variant="highlighted"
           />
 
